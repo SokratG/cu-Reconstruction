@@ -6,6 +6,7 @@
 
 #include <boost/uuid/random_generator.hpp>
 #include <boost/uuid/uuid.hpp>
+#include <boost/functional/hash.hpp>
 
 #include <glog/logging.h>
 
@@ -35,23 +36,25 @@ private:
 };
 
 
-class UUID {
+class UUID 
+{
 public:
     static boost::uuids::random_generator gen;
 };
 
+};
 
+namespace std
+{
 // std::unordered_map<boost::uuids::uuid, T, boost::hash<boost::uuids::uuid>>
 template<>
 struct hash<boost::uuids::uuid>
 {
-    size_t operator ()(const boost::uuids::uuid& uid)
+    size_t operator()(const boost::uuids::uuid& uid)
     {
         return boost::hash<boost::uuids::uuid>()(uid);
     }
 };
-
-
-};
+}
 
 #endif

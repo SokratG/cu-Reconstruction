@@ -29,6 +29,7 @@ public:
     // set and get pose, thread safe
     SE3 pose();
     void pose(const SE3& camera_pose);
+    cv::Mat frame() const {return frame_image;}
 
 public:
     // frame id
