@@ -26,7 +26,6 @@ public:
 protected:
     cv::Ptr<cv::Feature2D> create_orb(const std::string& config);
 private:
-    FeatureDetectorBackend backend;
     cv::Ptr<cv::Feature2D> detector;
     i32 min_keypoints;
 };

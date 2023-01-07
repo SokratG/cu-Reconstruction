@@ -5,7 +5,7 @@
 namespace curec {
 
 FeatureDetector::FeatureDetector(const FeatureDetectorBackend backend, const std::string& config) : 
-                                min_keypoints(200)
+                                 min_keypoints(200)
 {
     switch (backend) {
         case FeatureDetectorBackend::ORB:

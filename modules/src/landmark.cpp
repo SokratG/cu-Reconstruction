@@ -24,24 +24,16 @@ void Landmark::pose(const Vec3& _position) {
     position = _position;
 };
 
-void Landmark::add_observation(const std::shared_ptr<Feature> feature) {
+void Landmark::set_observation(const std::unique_ptr<Feature> feature) {
     std::unique_lock<std::mutex> lck(data_mutex);
-    observations.push_back(feature);
+    observation = std::make_shared<Feature>(*feature);
 }
 
-void Landmark::remove_observation(const std::shared_ptr<Feature> feature) {
-    std::unique_lock<std::mutex> lck(data_mutex);
-    for (auto iter = observations.begin(); iter != observations.end(); iter++) {
-        if (iter->lock() == feature) {
-            observations.erase(iter);
-            break;
-        }
-    }
-}
 
-std::list<std::weak_ptr<Feature>> Landmark::observation() const {
+
+std::shared_ptr<Feature> Landmark::landmark() const {
     std::unique_lock<std::mutex> lck(data_mutex);
-    return observations;
+    return observation;
 }
 
 };

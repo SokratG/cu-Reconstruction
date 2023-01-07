@@ -1,6 +1,7 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.22)
 
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # gflags
 find_package(GFlags REQUIRED)
@@ -12,9 +13,6 @@ find_library(CUREC_LIB curec_lib)
 include_directories("${PROJECT_SOURCE_DIR}/modules/include")
 include_directories(${GFLAGS_INCLUDE_DIRS})
 include_directories(${GLOG_INCLUDE_DIRS})
-
-message(STATUS ${CUREC_LIB})
-
 
 file(GLOB SRC_MAIN_APP "*.c*")
 

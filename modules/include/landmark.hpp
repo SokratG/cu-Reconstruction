@@ -23,9 +23,8 @@ public:
     void outlier(const bool v);
     Vec3 pose() const;
     void pose(const Vec3& position);
-    void add_observation(const std::shared_ptr<Feature> feature);
-    void remove_observation(const std::shared_ptr<Feature> feature);
-    std::list<std::weak_ptr<Feature>> observation() const;
+    void set_observation(const std::unique_ptr<Feature> feature);
+    std::shared_ptr<Feature> landmark() const;
 
 public:
     uuid id;
@@ -33,7 +32,7 @@ public:
 private:
     mutable std::mutex data_mutex;
     Vec3 position;
-    std::list<std::weak_ptr<Feature>> observations;
+    std::shared_ptr<Feature> observation;
     bool is_outlier;
 };
 
