@@ -1,6 +1,7 @@
 #include "keyframe.hpp"
 #include "utils.hpp"
 
+
 namespace curec {
 
 KeyFrame::KeyFrame() {
@@ -24,7 +25,7 @@ void KeyFrame::pose(const SE3& _camera_pose) {
 }
 
 KeyFrame::Ptr KeyFrame::create_keyframe(const cv::Mat& image,
-                              const SE3& camera_pose) {
+                                        const SE3& camera_pose) {
     const uuid id = UUID::gen();
     const time_point time_stamp = system_clock::now();
     KeyFrame::Ptr key_frame = std::shared_ptr<KeyFrame>(new KeyFrame(id, image, camera_pose, time_stamp));

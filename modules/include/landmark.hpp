@@ -6,7 +6,6 @@
 #include <opencv2/core/core.hpp>
 #include <memory>
 #include <mutex>
-#include <list>
 
 
 namespace curec {
@@ -16,8 +15,10 @@ public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
     using Ptr = std::shared_ptr<Landmark>;
 
-    Landmark() {}
-    Landmark(const uuid& id, const Vec3& position);
+
+    // factory build mode, assign id
+    static std::shared_ptr<Landmark> create_landmark(const Vec3& position);
+    static std::shared_ptr<Landmark> create_landmark();
 
     bool outlier() const;
     void outlier(const bool v);
@@ -29,6 +30,9 @@ public:
 public:
     uuid id;
 
+protected:
+    Landmark() {}
+    Landmark(const uuid& id, const Vec3& position);
 private:
     mutable std::mutex data_mutex;
     Vec3 position;

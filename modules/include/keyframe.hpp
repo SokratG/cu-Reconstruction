@@ -35,7 +35,7 @@ public:
     uuid id;
     // Timestamp
     time_point time_stamp;
-private:
+protected:
     KeyFrame();
     KeyFrame(const uuid& id,
              const cv::Mat& image,

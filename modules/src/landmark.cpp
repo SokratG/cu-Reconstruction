@@ -1,4 +1,6 @@
 #include "landmark.hpp"
+#include "utils.hpp"
+
 
 namespace curec {
 
@@ -29,11 +31,22 @@ void Landmark::set_observation(const std::unique_ptr<Feature> feature) {
     observation = std::make_shared<Feature>(*feature);
 }
 
-
-
 std::shared_ptr<Feature> Landmark::landmark() const {
     std::unique_lock<std::mutex> lck(data_mutex);
     return observation;
+}
+
+Landmark::Ptr Landmark::create_landmark(const Vec3& position) {
+    const uuid id = UUID::gen();
+    Landmark::Ptr landmark = std::shared_ptr<Landmark>(new Landmark(id, position));
+    return landmark;
+}
+
+Landmark::Ptr Landmark::create_landmark() {
+    const uuid id = UUID::gen();
+    Landmark::Ptr landmark = std::shared_ptr<Landmark>(new Landmark);
+    landmark->id = id;
+    return landmark;
 }
 
 };

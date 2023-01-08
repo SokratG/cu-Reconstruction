@@ -1,6 +1,7 @@
 #include "sfm.hpp"
 #include "feature_detector.hpp"
 #include "feature_matcher.hpp"
+#include "visibility_graph.hpp"
  #include <opencv2/core/eigen.hpp>
 #include <glog/logging.h>
 
@@ -44,6 +45,8 @@ void Sfm::build_landmark_graph() {
 
     LOG(INFO) << "matching size after filter outliers: " << matching.size();
 
+    VisibilityGraph v_graph;
+    v_graph.build_nodes(matching, feat_pts);
 
 }
 

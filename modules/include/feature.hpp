@@ -20,9 +20,6 @@ public:
     cv::KeyPoint position;
 
     // TODO: add descriptor data
-    
-    // Whether it is an abnormal point
-    bool is_outlier = false;
 
 public:
     Feature() {}
