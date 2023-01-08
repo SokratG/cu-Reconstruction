@@ -4,6 +4,14 @@
 namespace curec {
 
 
+class VisibilityGraph {
+public:
+    VisibilityGraph();
+
+private:
+
+};
+
 };
 
 

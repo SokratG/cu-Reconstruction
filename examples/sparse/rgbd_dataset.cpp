@@ -1,5 +1,6 @@
 #include "rgbd_dataset.hpp"
 #include "cr_exception.hpp"
+#include <opencv2/opencv.hpp>
 #include <filesystem>
 #include <glog/logging.h>
 
@@ -40,11 +41,11 @@ RGBD RGBDDataset::get_next() {
         LOG(WARNING) << "All files in directory was traversed! Use reset for iterate again.";
         return {cv::Mat(), cv::Mat()};
     }
-    LOG(INFO) << *current_file;
+    cv::Mat rgb = cv::imread(*current_file, cv::IMREAD_COLOR);
     std::advance(current_file, 1);
-    LOG(INFO) << *current_file;
+    cv::Mat depth = cv::imread(*current_file, cv::IMREAD_UNCHANGED);
     std::advance(current_file, 1);
-    return {cv::Mat(), cv::Mat()};
+    return {rgb, depth};
 }
 
 i32 RGBDDataset::num_files() const {

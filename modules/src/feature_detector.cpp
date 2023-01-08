@@ -11,6 +11,9 @@ FeatureDetector::FeatureDetector(const FeatureDetectorBackend backend, const std
         case FeatureDetectorBackend::ORB:
             detector = create_orb(config);
             break;
+        case FeatureDetectorBackend::SIFT:
+            detector = create_sift(config);
+            break;
         default:
             throw CuRecException("The given feature detector backend is not allowed!");
     }
@@ -18,7 +21,12 @@ FeatureDetector::FeatureDetector(const FeatureDetectorBackend backend, const std
 
 cv::Ptr<cv::Feature2D> FeatureDetector::create_orb(const std::string& config) {
     // TODO: add config read ORB parameters
-    return cv::ORB::create(600, 1.2, 8, 31, 0, 3, cv::ORB::HARRIS_SCORE);
+    return cv::ORB::create(1000, 1.2, 8, 31, 0, 3, cv::ORB::HARRIS_SCORE);
+}
+
+cv::Ptr<cv::Feature2D> FeatureDetector::create_sift(const std::string& config) {
+    // TODO: add config read SIFT parameters
+    return cv::SIFT::create(0, 3, 0.04, 10, 1.6);
 }
 
 
@@ -39,6 +47,8 @@ bool FeatureDetector::detect(const KeyFrame::Ptr frame, std::vector<Feature>& fe
         feature_pts[idx].position = k_pts[idx];
         feature_pts[idx].frame = frame;
     }
+
+    descriptor.convertTo(descriptor, CV_32F);
 
     return true;
 }

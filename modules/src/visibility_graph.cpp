@@ -2,5 +2,10 @@
 
 namespace curec {
 
+VisibilityGraph::VisibilityGraph() {
+
+}
+
+
 
 };

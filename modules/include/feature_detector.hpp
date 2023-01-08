@@ -13,6 +13,7 @@ namespace curec {
 // TODO add new GPU feature detector backends
 enum class FeatureDetectorBackend {
     ORB,
+    SIFT,
     UNKNOWN
 };
 
@@ -25,6 +26,7 @@ public:
     
 protected:
     cv::Ptr<cv::Feature2D> create_orb(const std::string& config);
+    cv::Ptr<cv::Feature2D> create_sift(const std::string& config);
 private:
     cv::Ptr<cv::Feature2D> detector;
     i32 min_keypoints;

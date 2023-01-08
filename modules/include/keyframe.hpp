@@ -11,7 +11,7 @@ namespace curec {
 
 class Landmark;
 
-class KeyFrame {
+class KeyFrame : public std::enable_shared_from_this<KeyFrame> {
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
     using Ptr = std::shared_ptr<KeyFrame>;
@@ -20,22 +20,27 @@ public:
     static std::shared_ptr<KeyFrame> create_keyframe(const cv::Mat& image, const SE3& camera_pose);
     static std::shared_ptr<KeyFrame> create_keyframe();
 
-    KeyFrame() {}
-    KeyFrame(const uuid& id,
-             const cv::Mat& image,
-             const SE3& camera_pose,
-             const time_point time_stamp);
 
+    std::shared_ptr<KeyFrame> getptr() {
+        return shared_from_this();
+    }
     // set and get pose, thread safe
     SE3 pose();
     void pose(const SE3& camera_pose);
     cv::Mat frame() const {return frame_image;}
+    void frame(const cv::Mat frame) {frame_image = frame;}
 
 public:
     // frame id
     uuid id;
     // Timestamp
     time_point time_stamp;
+private:
+    KeyFrame();
+    KeyFrame(const uuid& id,
+             const cv::Mat& image,
+             const SE3& camera_pose,
+             const time_point time_stamp);
 private:
     // T_CAMERA_WORLD form Pose
     SE3 camera_pose;

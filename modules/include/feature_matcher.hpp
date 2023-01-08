@@ -2,6 +2,7 @@
 #define CUREC_LIB_FEATURE_MATCHER_HPP
 
 #include "types.hpp"
+#include "feature.hpp"
 #include <string>
 #include <vector>
 #include <memory>
@@ -15,12 +16,9 @@ enum class FeatureMatcherBackend {
     UNKNOWN
 };
 
-
+// TODO: add config from file
 struct MatcherConfig {
-    r32 brute_max_dist = 10000;
-    r32 brute_min_dist = 0;
-    r32 ratio_threshold = 0.75;
-    r32 min_conf_dist = 30;
+    r32 ratio_threshold = 0.8;
     i32 k_nn = 2;
 };
 
@@ -35,9 +33,15 @@ struct MatchAdjacent {
 
 std::vector<MatchAdjacent> feature_matching(const FeatureMatcherBackend backend,
                                             const std::vector<cv::Mat>& descriptors,
-                                            const MatcherConfig& mcfg);
+                                            const MatcherConfig& mcfg = MatcherConfig());
+
+std::vector<MatchAdjacent> ransac_filter_outlier(const std::vector<MatchAdjacent>& matches,
+                                                const std::vector<std::vector<Feature>>& feat_pts,
+                                                const cv::Mat intrinsic,
+                                                const r64 prob = 0.9,
+                                                const r64 threshold = 3.5,
+                                                const i32 min_inlier = 50);
 
 };
-
 
 #endif
