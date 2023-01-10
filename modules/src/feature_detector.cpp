@@ -30,7 +30,7 @@ cv::Ptr<cv::Feature2D> FeatureDetector::create_sift(const std::string& config) {
 }
 
 
-bool FeatureDetector::detect(const KeyFrame::Ptr frame, std::vector<Feature>& feature_pts, cv::Mat& descriptor) {
+bool FeatureDetector::detect(const KeyFrame::Ptr frame, std::vector<Feature::Ptr>& feature_pts, cv::Mat& descriptor) {
     cv::Mat image = frame->frame();
     if (image.empty()) 
         throw CuRecException("The given image has no data!");
@@ -42,10 +42,9 @@ bool FeatureDetector::detect(const KeyFrame::Ptr frame, std::vector<Feature>& fe
         return false;
     }
 
-    feature_pts = std::vector<Feature>(k_pts.size());
+    feature_pts = std::vector<Feature::Ptr>();
     for (auto idx = 0; idx < k_pts.size(); ++idx) {
-        feature_pts[idx].position = k_pts[idx];
-        feature_pts[idx].frame = frame;
+        feature_pts.emplace_back(std::make_shared<Feature>(frame, k_pts[idx]));
     }
 
     descriptor.convertTo(descriptor, CV_32F);

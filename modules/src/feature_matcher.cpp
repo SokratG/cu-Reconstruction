@@ -10,7 +10,7 @@ namespace curec {
 MatchAdjacent::MatchAdjacent(const i32 _src_idx, const i32 _dst_idx, 
                              const std::vector<cv::DMatch>& _match) :
                              src_idx(_src_idx), dst_idx(_dst_idx), 
-                             match(std::make_shared<std::vector<cv::DMatch>>(_match)) {
+                             match(_match) {
 }
 
 void match_descriptors(cv::Ptr<cv::DescriptorMatcher> matcher,
@@ -59,7 +59,7 @@ std::vector<MatchAdjacent> feature_matching(const FeatureMatcherBackend backend,
 
 
 std::vector<MatchAdjacent> ransac_filter_outlier(const std::vector<MatchAdjacent>& matches,
-                                                 const std::vector<std::vector<Feature>>& feat_pts,
+                                                 const std::vector<std::vector<Feature::Ptr>>& feat_pts,
                                                  const cv::Mat intrinsic,
                                                  const r64 prob,
                                                  const r64 threshold,
@@ -70,15 +70,13 @@ std::vector<MatchAdjacent> ransac_filter_outlier(const std::vector<MatchAdjacent
     for (auto ma_it = matches.begin(); ma_it != matches.end(); ma_it++) {
         const i32 src_idx = ma_it->src_idx;
         const i32 dst_idx = ma_it->dst_idx;
-        const i32 match_size = ma_it->match->size();
+        const i32 match_size = ma_it->match.size();
         
         std::vector<cv::Point2d> src(match_size), dst(match_size);
         for (i32 i = 0; i < match_size; ++i) {
-            src[i] = feat_pts[src_idx][ma_it->match->at(i).queryIdx].position.pt;
-            dst[i] = feat_pts[dst_idx][ma_it->match->at(i).trainIdx].position.pt;
+            src[i] = feat_pts[src_idx].at(ma_it->match.at(i).queryIdx)->position.pt;
+            dst[i] = feat_pts[dst_idx].at(ma_it->match.at(i).trainIdx)->position.pt;
         }
-        
-        std::vector<cv::DMatch> match = *(ma_it->match);
 
         cv::Mat inlier_mask; // mask inlier points -> "status": 0 - outlier, 1 - inlier
         cv::findEssentialMat(src, dst, intrinsic, cv::FM_RANSAC, 0.9, 3.5, inlier_mask);
@@ -91,7 +89,7 @@ std::vector<MatchAdjacent> ransac_filter_outlier(const std::vector<MatchAdjacent
         std::vector<cv::DMatch> inliers(inliers_size);
         for (i32 i = 0, step = 0; i < inlier_mask.rows; ++i) {
             if (inlier_mask.at<byte>(i)) {
-                inliers[step] = ma_it->match->at(i);
+                inliers[step] = ma_it->match.at(i);
                 step += 1;
             } 
         }

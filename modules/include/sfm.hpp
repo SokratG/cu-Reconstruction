@@ -4,7 +4,7 @@
 #include "keyframe.hpp"
 #include "camera.hpp"
 #include <opencv2/core/core.hpp>
-#include <list>
+#include <vector>
 
 namespace curec {
 
@@ -15,7 +15,7 @@ public:
     bool add_frame(const cv::Mat frame);
     void build_landmark_graph(); 
 private:
-    std::list<KeyFrame::Ptr> frames;
+    std::vector<KeyFrame::Ptr> frames;
     Camera::Ptr camera;
 };
 

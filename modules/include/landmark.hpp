@@ -17,6 +17,7 @@ public:
 
 
     // factory build mode, assign id
+    static std::shared_ptr<Landmark> create_landmark(const Vec3& position, const Vec3f& color);
     static std::shared_ptr<Landmark> create_landmark(const Vec3& position);
     static std::shared_ptr<Landmark> create_landmark();
 
@@ -24,7 +25,9 @@ public:
     void outlier(const bool v);
     Vec3 pose() const;
     void pose(const Vec3& position);
-    void set_observation(const std::unique_ptr<Feature> feature);
+    Vec3f color() const;
+    void color(const Vec3f& color);
+    void set_observation(const std::shared_ptr<Feature> feature);
     std::shared_ptr<Feature> landmark() const;
 
 public:
@@ -32,10 +35,11 @@ public:
 
 protected:
     Landmark() {}
-    Landmark(const uuid& id, const Vec3& position);
+    Landmark(const uuid& id, const Vec3& position, const Vec3f& color = Vec3f(0, 0, 0));
 private:
     mutable std::mutex data_mutex;
     Vec3 position;
+    Vec3f landmark_color;
     std::shared_ptr<Feature> observation;
     bool is_outlier;
 };

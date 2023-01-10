@@ -26,7 +26,7 @@ struct MatcherConfig {
 struct MatchAdjacent {
     i32 src_idx;
     i32 dst_idx;
-    std::shared_ptr<std::vector<cv::DMatch>> match;
+    std::vector<cv::DMatch> match;
     MatchAdjacent() = delete;
     MatchAdjacent(const i32 src_idx, const i32 dst_idx, const std::vector<cv::DMatch>& match);
 };
@@ -36,7 +36,7 @@ std::vector<MatchAdjacent> feature_matching(const FeatureMatcherBackend backend,
                                             const MatcherConfig& mcfg = MatcherConfig());
 
 std::vector<MatchAdjacent> ransac_filter_outlier(const std::vector<MatchAdjacent>& matches,
-                                                const std::vector<std::vector<Feature>>& feat_pts,
+                                                const std::vector<std::vector<Feature::Ptr>>& feat_pts,
                                                 const cv::Mat intrinsic,
                                                 const r64 prob = 0.9,
                                                 const r64 threshold = 3.5,

@@ -22,7 +22,7 @@ class FeatureDetector {
 public:
     FeatureDetector(const FeatureDetectorBackend backend, const std::string& config);
 
-    bool detect(const KeyFrame::Ptr frame, std::vector<Feature>& feature_pts, cv::Mat& descriptor);
+    bool detect(const KeyFrame::Ptr frame, std::vector<Feature::Ptr>& feature_pts, cv::Mat& descriptor);
     
 protected:
     cv::Ptr<cv::Feature2D> create_orb(const std::string& config);

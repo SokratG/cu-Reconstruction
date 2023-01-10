@@ -1,12 +1,15 @@
 #ifndef CUREC_LIB_UTILS_HPP
 #define CUREC_LIB_UTILS_HPP
 
+#include "types.hpp"
 #include <unistd.h>
 #include <chrono>
 
 #include <boost/uuid/random_generator.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/functional/hash.hpp>
+
+#include <opencv2/core/core.hpp>
 
 #include <glog/logging.h>
 
@@ -41,6 +44,12 @@ class UUID
 public:
     static boost::uuids::random_generator gen;
 };
+
+
+ui64 gen_combined_key(const ui64 v1, const ui64 v2);
+
+
+Vec3f cv_rgb_2_eigen_rgb(const cv::Vec3b& cv_color);
 
 };
 

@@ -4,7 +4,8 @@
 
 namespace curec {
 
-Landmark::Landmark(const uuid& _id, const Vec3& _position) : id(_id), position(_position) {
+Landmark::Landmark(const uuid& _id, const Vec3& _position, const Vec3f& _color) : 
+                  id(_id), position(_position), landmark_color(_color) {
 
 }
 
@@ -26,14 +27,30 @@ void Landmark::pose(const Vec3& _position) {
     position = _position;
 };
 
-void Landmark::set_observation(const std::unique_ptr<Feature> feature) {
+Vec3f Landmark::color() const {
     std::unique_lock<std::mutex> lck(data_mutex);
-    observation = std::make_shared<Feature>(*feature);
+    return landmark_color;
+}
+
+void Landmark::color(const Vec3f& _color) {
+    std::unique_lock<std::mutex> lck(data_mutex);
+    landmark_color = _color;
+}
+
+void Landmark::set_observation(const std::shared_ptr<Feature> feature) {
+    std::unique_lock<std::mutex> lck(data_mutex);
+    observation = feature;
 }
 
 std::shared_ptr<Feature> Landmark::landmark() const {
     std::unique_lock<std::mutex> lck(data_mutex);
     return observation;
+}
+
+Landmark::Ptr Landmark::create_landmark(const Vec3& position, const Vec3f& color) {
+    const uuid id = UUID::gen();
+    Landmark::Ptr landmark = std::shared_ptr<Landmark>(new Landmark(id, position, color));
+    return landmark;
 }
 
 Landmark::Ptr Landmark::create_landmark(const Vec3& position) {
