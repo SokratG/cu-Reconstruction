@@ -9,14 +9,6 @@ Landmark::Landmark(const uuid& _id, const Vec3& _position, const Vec3f& _color) 
 
 }
 
-bool Landmark::outlier() const {
-    return is_outlier;
-}
-
-void Landmark::outlier(const bool v) {
-    is_outlier = v;
-}
-
 Vec3 Landmark::pose() const {
     std::unique_lock<std::mutex> lck(data_mutex);
     return position;

@@ -46,11 +46,16 @@ public:
 };
 
 
-ui64 gen_combined_key(const ui64 v1, const ui64 v2);
+ui64 gen_combined_hash(const ui64 v1, const ui64 v2);
 
+ui64 gen_combined_key(const ui64 v1, const ui64 v2);
 
 Vec3f cv_rgb_2_eigen_rgb(const cv::Vec3b& cv_color);
 
+bool triangulation(const std::vector<SE3> &poses, 
+                   const std::vector<Vec3> points,
+                   const r64 confidence_thrshold,
+                   Vec3 &pt_world);
 };
 
 namespace std

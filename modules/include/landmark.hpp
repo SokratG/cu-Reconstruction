@@ -21,8 +21,7 @@ public:
     static std::shared_ptr<Landmark> create_landmark(const Vec3& position);
     static std::shared_ptr<Landmark> create_landmark();
 
-    bool outlier() const;
-    void outlier(const bool v);
+    
     Vec3 pose() const;
     void pose(const Vec3& position);
     Vec3f color() const;
@@ -41,7 +40,6 @@ private:
     Vec3 position;
     Vec3f landmark_color;
     std::shared_ptr<Feature> observation;
-    bool is_outlier;
 };
 
 };

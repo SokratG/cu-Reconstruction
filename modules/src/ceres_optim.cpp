@@ -1,4 +1,4 @@
-#include "non_linear_optim.hpp"
+#include "ceres_optim.hpp"
 
 namespace curec {
 

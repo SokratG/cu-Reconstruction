@@ -22,10 +22,15 @@ public:
     // TODO: add descriptor data
 
 public:
-    Feature() {}
+    bool outlier() const;
+    void outlier(const bool v);
+
+    Feature() : is_outlier(false) {}
 
     Feature(std::shared_ptr<KeyFrame> _frame, const cv::KeyPoint& kp)
-        : frame(_frame), position(kp) {}
+        : frame(_frame), position(kp), is_outlier(false) {}
+private:
+    bool is_outlier;
 };
 
 }

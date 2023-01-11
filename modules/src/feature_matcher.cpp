@@ -1,16 +1,14 @@
 #include "feature_matcher.hpp"
 #include "cr_exception.hpp"
 #include <opencv2/calib3d/calib3d.hpp>
+#include <opencv2/core/eigen.hpp>
 #include <opencv2/xfeatures2d.hpp>
 #include <glog/logging.h>
 
 namespace curec {
 
+MatchAdjacent::MatchAdjacent(const i32 _src_idx) : src_idx(_src_idx) {
 
-MatchAdjacent::MatchAdjacent(const i32 _src_idx, const i32 _dst_idx, 
-                             const std::vector<cv::DMatch>& _match) :
-                             src_idx(_src_idx), dst_idx(_dst_idx), 
-                             match(_match) {
 }
 
 void match_descriptors(cv::Ptr<cv::DescriptorMatcher> matcher,
@@ -46,12 +44,13 @@ std::vector<MatchAdjacent> feature_matching(const FeatureMatcherBackend backend,
     const i32 adj_size = descriptors.size();
     std::vector<MatchAdjacent> matching;
     for (i32 i = 0; i < adj_size; ++i) {
+        MatchAdjacent match_adj(i);
         for (i32 j = i + 1; j < adj_size; ++j) {
             std::vector<cv::DMatch> match;
-            match_descriptors(matcher, descriptors[i], descriptors[j], mcfg, match); 
-            MatchAdjacent match_adj(i, j, match);
-            matching.emplace_back(match_adj);
+            match_descriptors(matcher, descriptors[i], descriptors[j], mcfg, match);
+            match_adj.ord_match.insert({j, match});            
         }
+        matching.emplace_back(match_adj);
     }
 
     return matching;
@@ -60,42 +59,45 @@ std::vector<MatchAdjacent> feature_matching(const FeatureMatcherBackend backend,
 
 std::vector<MatchAdjacent> ransac_filter_outlier(const std::vector<MatchAdjacent>& matches,
                                                  const std::vector<std::vector<Feature::Ptr>>& feat_pts,
-                                                 const cv::Mat intrinsic,
-                                                 const r64 prob,
-                                                 const r64 threshold,
-                                                 const i32 min_inlier) {
+                                                 const Mat3& intrinsic,
+                                                 const OutlierMatcherConfig& cfg) {
     std::vector<MatchAdjacent> matching;
     const i32 adj_size = matches.size();
-
+    cv::Mat K;
+    cv::eigen2cv(intrinsic, K);
     for (auto ma_it = matches.begin(); ma_it != matches.end(); ma_it++) {
         const i32 src_idx = ma_it->src_idx;
-        const i32 dst_idx = ma_it->dst_idx;
-        const i32 match_size = ma_it->match.size();
-        
-        std::vector<cv::Point2d> src(match_size), dst(match_size);
-        for (i32 i = 0; i < match_size; ++i) {
-            src[i] = feat_pts[src_idx].at(ma_it->match.at(i).queryIdx)->position.pt;
-            dst[i] = feat_pts[dst_idx].at(ma_it->match.at(i).trainIdx)->position.pt;
-        }
+        MatchAdjacent match_adj(src_idx);
+        for (const auto& m : ma_it->ord_match) {
+            const i32 dst_idx = m.first;
+            const auto& match = m.second;
+            const i32 match_size = match.size();
 
-        cv::Mat inlier_mask; // mask inlier points -> "status": 0 - outlier, 1 - inlier
-        cv::findEssentialMat(src, dst, intrinsic, cv::FM_RANSAC, 0.9, 3.5, inlier_mask);
-        const auto inliers_size = cv::countNonZero(inlier_mask) ;
-        if (inliers_size < min_inlier) {
-            LOG(WARNING) << "images " << src_idx << " and " << dst_idx << " don't have enough inliers: " << inliers_size; 
-            continue;
-        }
+            std::vector<cv::Point2d> src(match_size), dst(match_size);
+            for (i32 i = 0; i < match_size; ++i) {
+                src[i] = feat_pts[src_idx].at(match.at(i).queryIdx)->position.pt;
+                dst[i] = feat_pts[dst_idx].at(match.at(i).trainIdx)->position.pt;
+            }
 
-        std::vector<cv::DMatch> inliers(inliers_size);
-        for (i32 i = 0, step = 0; i < inlier_mask.rows; ++i) {
-            if (inlier_mask.at<byte>(i)) {
-                inliers[step] = ma_it->match.at(i);
-                step += 1;
-            } 
+            cv::Mat inlier_mask; // mask inlier points -> "status": 0 - outlier, 1 - inlier
+            cv::findEssentialMat(src, dst, K, cv::FM_RANSAC, cfg.prob, cfg.threshold, inlier_mask);
+            const auto inliers_size = cv::countNonZero(inlier_mask) ;
+            if (inliers_size < cfg.min_inlier) {
+                LOG(WARNING) << "images " << src_idx << " and " << dst_idx << " don't have enough inliers: " << inliers_size; 
+                continue;
+            }
+
+            std::vector<cv::DMatch> inliers(inliers_size);
+            for (i32 i = 0, step = 0; i < inlier_mask.rows; ++i) {
+                if (inlier_mask.at<byte>(i)) {
+                    inliers[step] = match.at(i);
+                    step += 1;
+                } 
+            }
+            match_adj.ord_match.insert({dst_idx, inliers});
         }
-        
-        MatchAdjacent match_adj(src_idx, dst_idx, inliers);
-        matching.emplace_back(match_adj);
+        if (match_adj.ord_match.size() > 0)
+            matching.emplace_back(match_adj);
     }
 
     return matching;

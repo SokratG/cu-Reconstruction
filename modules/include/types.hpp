@@ -34,6 +34,8 @@ using Mat34 = Eigen::Matrix<r64, 3, 4>;
 using Mat43 = Eigen::Matrix<r64, 4, 3>;
 using Mat44 = Eigen::Matrix<r64, 4, 4>;
 using Mat66 = Eigen::Matrix<r64, 6, 6>;
+using Mat3 = Mat33;
+using Mat4 = Mat44;
 
 using MatXXf = Eigen::Matrix<r32, Eigen::Dynamic, Eigen::Dynamic>;
 using Mat22f = Eigen::Matrix<r32, 2, 2>;
@@ -42,6 +44,8 @@ using Mat34f = Eigen::Matrix<r32, 3, 4>;
 using Mat43f = Eigen::Matrix<r32, 4, 3>;
 using Mat44f = Eigen::Matrix<r32, 4, 4>;
 using Mat66f = Eigen::Matrix<r32, 6, 6>;
+using Mat3f = Mat33f;
+using Mat4f = Mat44f;
 
 using VecX = Eigen::Matrix<r64, Eigen::Dynamic, 1>;
 using Vec9 = Eigen::Matrix<r64, 9, 1>;

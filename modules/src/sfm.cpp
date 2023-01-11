@@ -1,8 +1,7 @@
 #include "sfm.hpp"
 #include "feature_detector.hpp"
 #include "feature_matcher.hpp"
-#include "visibility_graph.hpp"
-#include <opencv2/core/eigen.hpp>
+#include "motion_estimation.hpp"
 #include <glog/logging.h>
 
 
@@ -39,18 +38,20 @@ void Sfm::build_landmark_graph() {
                                                            descriptors);
     
     LOG(INFO) << "matching size: " << matching.size();
-    cv::Mat K;
-    cv::eigen2cv(camera->K(), K);
-
-    // TODO: motion estimation (find essential matrix)
-    matching = ransac_filter_outlier(matching, feat_pts, K);
-
+    
+    
+    matching = ransac_filter_outlier(matching, feat_pts, camera->K());
     LOG(INFO) << "matching size after filter outliers: " << matching.size();
 
-    VisibilityGraph v_graph(5.0, true);
-    v_graph.build_nodes(frames, matching, feat_pts);
-    LOG(INFO) << "Landmark size: " << v_graph.vis_graph.size();
+    MotionEstimation::Ptr me = std::make_shared<MotionEstimation>();
+    MotionEstimation::VisibilityGraph landmarks;
+    me->estimate_motion_ransac(frames, matching, feat_pts, camera, landmarks);
 
+    auto size = 0;
+    for (const auto& lm : landmarks) {
+        size += lm.second.size();
+    }
+    LOG(INFO) << "Total landmark size: " << size;
     // TODO: motion estimation (non linear optimization)
 }
 

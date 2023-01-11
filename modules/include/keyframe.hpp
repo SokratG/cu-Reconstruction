@@ -25,10 +25,12 @@ public:
         return shared_from_this();
     }
     // set and get pose, thread safe
-    SE3 pose();
+    SE3 pose() const;
     void pose(const SE3& camera_pose);
+    void pose(const Mat3& rotation, const Vec3& translation);
     cv::Mat frame() const {return frame_image;}
     void frame(const cv::Mat frame) {frame_image = frame;}
+    Mat34 get_projection_mat(const Mat3& K) const;
 
 public:
     // frame id
@@ -46,7 +48,7 @@ private:
     SE3 camera_pose;
     // image
     cv::Mat frame_image;
-    std::mutex pose_mutex;
+    mutable std::mutex pose_mutex;
     std::vector<std::shared_ptr<Landmark>> features;
 };
 

@@ -5,6 +5,7 @@
 #include "feature.hpp"
 #include <string>
 #include <vector>
+#include <map>
 #include <memory>
 #include <opencv4/opencv2/features2d.hpp>
 
@@ -22,13 +23,19 @@ struct MatcherConfig {
     i32 k_nn = 2;
 };
 
+struct OutlierMatcherConfig {
+    r64 prob = 0.9;
+    r64 threshold = 2.5;
+    i32 min_inlier = 50;
+};
+
+
 
 struct MatchAdjacent {
     i32 src_idx;
-    i32 dst_idx;
-    std::vector<cv::DMatch> match;
+    std::map<i32, std::vector<cv::DMatch>> ord_match;
     MatchAdjacent() = delete;
-    MatchAdjacent(const i32 src_idx, const i32 dst_idx, const std::vector<cv::DMatch>& match);
+    MatchAdjacent(const i32 _src_idx);
 };
 
 std::vector<MatchAdjacent> feature_matching(const FeatureMatcherBackend backend,
@@ -36,11 +43,9 @@ std::vector<MatchAdjacent> feature_matching(const FeatureMatcherBackend backend,
                                             const MatcherConfig& mcfg = MatcherConfig());
 
 std::vector<MatchAdjacent> ransac_filter_outlier(const std::vector<MatchAdjacent>& matches,
-                                                const std::vector<std::vector<Feature::Ptr>>& feat_pts,
-                                                const cv::Mat intrinsic,
-                                                const r64 prob = 0.9,
-                                                const r64 threshold = 3.5,
-                                                const i32 min_inlier = 50);
+                                                 const std::vector<std::vector<Feature::Ptr>>& feat_pts,
+                                                 const Mat3& intrinsic,
+                                                 const OutlierMatcherConfig& cfg = OutlierMatcherConfig());
 
 };
 
