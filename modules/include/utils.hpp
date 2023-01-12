@@ -56,6 +56,10 @@ bool triangulation(const std::vector<SE3> &poses,
                    const std::vector<Vec3> points,
                    const r64 confidence_thrshold,
                    Vec3 &pt_world);
+
+void write_ply_file(const std::string &filename, const std::vector<SE3>& poses, 
+                    const std::vector<Vec3>& pts, const std::vector<Vec3f>& color);
+
 };
 
 namespace std

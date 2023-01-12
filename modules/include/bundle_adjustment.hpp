@@ -3,6 +3,10 @@
 
 namespace curec {
 
+class BundleAdjustment {
+
+};
+
 
 };
 

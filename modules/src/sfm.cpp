@@ -2,6 +2,8 @@
 #include "feature_detector.hpp"
 #include "feature_matcher.hpp"
 #include "motion_estimation.hpp"
+#include "point_cloud.hpp"
+#include "utils.hpp"
 #include <glog/logging.h>
 
 
@@ -52,7 +54,27 @@ void Sfm::build_landmark_graph() {
         size += lm.second.size();
     }
     LOG(INFO) << "Total landmark size: " << size;
+
+
+    std::vector<Vec3> pts;
+    std::vector<Vec3f> colors;
+    std::vector<SE3> poses;
+    for (i32 i = 1; i < frames.size(); ++i) {
+        poses.emplace_back(frames[i]->pose());
+    }
+    for (const auto& cam : landmarks) {
+        for (const auto& lm: cam.second) {
+            const auto landmark = lm.second;
+            if (landmark->pose().z() > 50.0)
+                continue;
+            pts.emplace_back(landmark->pose());
+            colors.emplace_back(landmark->color());
+        }
+    }
+    write_ply_file("some.ply", poses, pts, colors);
+
     // TODO: motion estimation (non linear optimization)
+    me->estimate_motion_non_lin_opt();
 }
 
 };

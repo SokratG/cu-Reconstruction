@@ -7,7 +7,7 @@
 
 namespace curec {
 
-Landmark::Ptr make_landmark(const Feature::Ptr feat_pt, const Vec3 position_world) 
+Landmark::Ptr make_landmark(const Feature::Ptr feat_pt, const Vec3& position_world) 
 {
     const auto pt2 = feat_pt->position.pt;
     const Vec3f color = cv_rgb_2_eigen_rgb(feat_pt->frame.lock()->frame().at<cv::Vec3b>(pt2));
@@ -16,6 +16,16 @@ Landmark::Ptr make_landmark(const Feature::Ptr feat_pt, const Vec3 position_worl
     return landmark;
 }
 
+
+void MotionEstimation::estimate_ransac(const std::vector<cv::Point2d>& src, 
+                                       const std::vector<cv::Point2d>& dst,
+                                       const cv::Mat K,
+                                       Mat3& R, Vec3& t) {
+    cv::Mat E = cv::findEssentialMat(src, dst, K, cv::FM_RANSAC, 0.9, 1.5);
+    cv::Mat cvR, cvt;
+    cv::recoverPose(E, src, dst, K, cvR, cvt);
+    cv::cv2eigen(cvR, R); cv::cv2eigen(cvt, t);
+}
 
 bool MotionEstimation::estimate_motion_ransac(std::vector<KeyFrame::Ptr>& frames,
                                               const std::vector<MatchAdjacent>& ma,
@@ -31,11 +41,16 @@ bool MotionEstimation::estimate_motion_ransac(std::vector<KeyFrame::Ptr>& frames
     }
     cv::Mat K;
     cv::eigen2cv(camera->K(), K);
+    SE3 relative_motion = frames.front()->pose();
+
     // TODO: check require relative motion
     for (const auto& adj : ma) {
         const i32 src_idx = adj.src_idx;
-        const i32 dst_idx = adj.ord_match.begin()->first;
-        const auto& match = adj.ord_match.begin()->second;
+        const auto it_ord = adj.ord_match.begin();
+        if (it_ord == adj.ord_match.end())
+            continue;
+        const i32 dst_idx = it_ord->first;
+        const auto& match = it_ord->second;
         const i32 match_size = match.size();
 
         std::vector<cv::Point2d> src(match_size), dst(match_size);
@@ -43,13 +58,11 @@ bool MotionEstimation::estimate_motion_ransac(std::vector<KeyFrame::Ptr>& frames
             src[i] = feat_pts[src_idx].at(match.at(i).queryIdx)->position.pt;
             dst[i] = feat_pts[dst_idx].at(match.at(i).trainIdx)->position.pt;
         }
-
-        cv::Mat E = cv::findEssentialMat(src, dst, K, cv::FM_RANSAC, 0.9, 1.5);
-        cv::Mat cvR, cvt;
-        cv::recoverPose(E, src, dst, K, cvR, cvt);
         Mat3 R; Vec3 t;
-        cv::cv2eigen(cvR, R); cv::cv2eigen(cvt, t);
+        estimate_ransac(src, dst, K, R, t);
         frames[dst_idx]->pose(R, t);
+        const auto temp_pose = frames[dst_idx]->pose();
+        frames[dst_idx]->pose(relative_motion * temp_pose);
         std::vector<SE3> poses {frames[src_idx]->pose(), frames[dst_idx]->pose()};
         std::unordered_map<ui64, Landmark::Ptr> lms;
         for (i32 i = 0; i < match_size; ++i) {
@@ -64,7 +77,7 @@ bool MotionEstimation::estimate_motion_ransac(std::vector<KeyFrame::Ptr>& frames
                          dst[i].y)
                 ),
             };
-            const bool result = triangulation(poses, pt_camera, 15e-2, pt_world);
+            const bool result = triangulation(poses, pt_camera, 1e-2, pt_world);
             if (result && pt_world[2] > 0) {
                 const auto pt_idx = match.at(i).trainIdx;
                 auto feat_pt = feat_pts[dst_idx].at(pt_idx);
@@ -73,6 +86,7 @@ bool MotionEstimation::estimate_motion_ransac(std::vector<KeyFrame::Ptr>& frames
                 lms.insert({pt_idx, landmark});
             }
         }
+        relative_motion = frames[dst_idx]->pose() * frames[src_idx]->pose().inverse();
         landmarks.insert({dst_idx, lms});
     }
     return true;

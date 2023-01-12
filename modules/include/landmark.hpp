@@ -37,8 +37,8 @@ protected:
     Landmark(const uuid& id, const Vec3& position, const Vec3f& color = Vec3f(0, 0, 0));
 private:
     mutable std::mutex data_mutex;
-    Vec3 position;
-    Vec3f landmark_color;
+    Vec3 position = Vec3::Zero();
+    Vec3f landmark_color = Vec3f(255, 255, 255);
     std::shared_ptr<Feature> observation;
 };
 

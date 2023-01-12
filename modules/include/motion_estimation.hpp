@@ -26,7 +26,10 @@ public:
                                 VisibilityGraph& landmarks);
     bool estimate_motion_non_lin_opt();
 private:
-    // TODO
+    void estimate_ransac(const std::vector<cv::Point2d>& src, 
+                         const std::vector<cv::Point2d>& dst,
+                         const cv::Mat K,
+                         Mat3& R, Vec3& t);
 };
 
 };

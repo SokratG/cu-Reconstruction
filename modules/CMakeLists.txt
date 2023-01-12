@@ -21,6 +21,8 @@ find_package(Sophus REQUIRED)
 find_package(Ceres REQUIRED)
 # boost
 find_package(Boost REQUIRED)
+# PCL
+find_package(PCL 1.10 REQUIRED)
 # cuda
 find_package(CUDA REQUIRED)
 
@@ -29,7 +31,9 @@ include_directories("${PROJECT_SOURCE_DIR}/modules/include")
 include_directories(${EIGEN3_INCLUDE_DIR})
 include_directories(${OpenCV_INCLUDE_DIRS})
 include_directories(${Sophus_INCLUDE_DIRS})
+include_directories(${CERES_INCLUDE_DIRS})
 include_directories(${GLOG_INCLUDE_DIRS})
+include_directories(${PCL_INCLUDE_DIRS})
 
 
 add_definitions(-D_USE_MATH_DEFINES)
@@ -50,3 +54,4 @@ target_link_libraries(curec_lib Sophus::Sophus)
 target_link_libraries(curec_lib ${CERES_LIBRARIES})
 target_link_libraries(curec_lib ${OpenCV_LIBRARIES})
 target_link_libraries(curec_lib ${GLOG_LIBRARIES})
+target_link_libraries(curec_lib ${PCL_LIBRARIES})
