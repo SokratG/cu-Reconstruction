@@ -29,14 +29,14 @@ void Landmark::color(const Vec3f& _color) {
     landmark_color = _color;
 }
 
-void Landmark::set_observation(const std::shared_ptr<Feature> feature) {
+void Landmark::observation(const std::shared_ptr<Feature> feature) {
     std::unique_lock<std::mutex> lck(data_mutex);
-    observation = feature;
+    observation_pt = feature;
 }
 
-std::shared_ptr<Feature> Landmark::landmark() const {
+std::shared_ptr<Feature> Landmark::observation() const {
     std::unique_lock<std::mutex> lck(data_mutex);
-    return observation;
+    return observation_pt;
 }
 
 Landmark::Ptr Landmark::create_landmark(const Vec3& position, const Vec3f& color) {

@@ -68,7 +68,7 @@ namespace std
 template<>
 struct hash<boost::uuids::uuid>
 {
-    size_t operator()(const boost::uuids::uuid& uid)
+    std::size_t operator()(boost::uuids::uuid const& uid) const noexcept
     {
         return boost::hash<boost::uuids::uuid>()(uid);
     }

@@ -1,5 +1,5 @@
-#ifndef CUREC_LIB_CAMERA_HPP
-#define CUREC_LIB_CAMERA_HPP
+#ifndef CUREC_LIB_EXCEPTION_HPP
+#define CUREC_LIB_EXCEPTION_HPP
 
 #include <exception>
 #include <string>

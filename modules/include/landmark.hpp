@@ -6,6 +6,7 @@
 #include <opencv2/core/core.hpp>
 #include <memory>
 #include <mutex>
+#include <unordered_map>
 
 
 namespace curec {
@@ -26,8 +27,8 @@ public:
     void pose(const Vec3& position);
     Vec3f color() const;
     void color(const Vec3f& color);
-    void set_observation(const std::shared_ptr<Feature> feature);
-    std::shared_ptr<Feature> landmark() const;
+    void observation(const std::shared_ptr<Feature> feature);
+    std::shared_ptr<Feature> observation() const;
 
 public:
     uuid id;
@@ -39,8 +40,12 @@ private:
     mutable std::mutex data_mutex;
     Vec3 position = Vec3::Zero();
     Vec3f landmark_color = Vec3f(255, 255, 255);
-    std::shared_ptr<Feature> observation;
+    std::shared_ptr<Feature> observation_pt;
 };
+
+
+// 
+using VisibilityGraph = std::unordered_map<ui32, std::unordered_map<ui64, Landmark::Ptr>>;
 
 };
 

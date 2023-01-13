@@ -1,9 +1,11 @@
 #ifndef CUREC_LIB_CERES_OPTIM_HPP
 #define CUREC_LIB_CERES_OPTIM_HPP
 
-#include "types.hpp"
+#include "optimizer.hpp"
+#include "utils.hpp"
 #include <ceres/ceres.h>
 #include <ceres/rotation.h>
+#include <unordered_map>
 
 namespace curec {
 
@@ -15,6 +17,14 @@ struct CeresCameraModel {
     SE3 pose() const;
     r64 raw_camera_param[9];
     Vec2 camera_center;
+};
+
+struct CeresObservation {
+    CeresObservation() = delete;
+    CeresObservation(const Vec3& pt3d);
+
+    Vec3 position() const;
+    r64 obs[3];
 };
 
 class ReprojectionErrorRt
@@ -121,6 +131,33 @@ private:
     Vec2 observation;
     Vec2 center;
 };
+
+
+class CeresOptimizer : public Optimizer {
+public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+    using Ptr = std::shared_ptr<CeresOptimizer>;
+
+    CeresOptimizer(const TypeReprojectionError tre, const r64 loss_width = 7.0);
+    virtual void build_blocks(const VisibilityGraph& landmarks,
+                              const std::vector<KeyFrame::Ptr>& frames,
+                              const Camera::Ptr camera) override;
+    virtual void optimize(const i32 n_iteration, const i32 num_threads, const bool fullreport) override;
+    virtual void store_result(VisibilityGraph& landmarks, std::vector<KeyFrame::Ptr>& frames) override;
+    void reset();
+protected:
+    void add_block(CeresCameraModel& ceres_camera, CeresObservation& landmark, 
+                   const Vec2& observ_pt, const Mat3& K);
+    ceres::CostFunction* get_cost_function(const Mat3& K, const Vec2& pt);
+
+private:
+    std::shared_ptr<ceres::Problem> optim_problem;
+    std::unordered_map<uuid, CeresCameraModel> ceres_cameras;
+    std::unordered_map<uuid, CeresObservation> ceres_obseravations;
+    r64 loss_width;
+    TypeReprojectionError type_err;
+};
+
 
 
 };

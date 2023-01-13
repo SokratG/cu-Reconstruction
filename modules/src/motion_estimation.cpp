@@ -1,5 +1,6 @@
 #include "motion_estimation.hpp"
 #include "utils.hpp"
+#include "bundle_adjustment.hpp"
 #include <opencv2/core/eigen.hpp>
 #include <opencv2/calib3d/calib3d.hpp>
 #include <glog/logging.h>
@@ -12,7 +13,7 @@ Landmark::Ptr make_landmark(const Feature::Ptr feat_pt, const Vec3& position_wor
     const auto pt2 = feat_pt->position.pt;
     const Vec3f color = cv_rgb_2_eigen_rgb(feat_pt->frame.lock()->frame().at<cv::Vec3b>(pt2));
     Landmark::Ptr landmark = Landmark::create_landmark(position_world, color);
-    landmark->set_observation(feat_pt);
+    landmark->observation(feat_pt);
     return landmark;
 }
 
@@ -43,7 +44,6 @@ bool MotionEstimation::estimate_motion_ransac(std::vector<KeyFrame::Ptr>& frames
     cv::eigen2cv(camera->K(), K);
     SE3 relative_motion = frames.front()->pose();
 
-    // TODO: check require relative motion
     for (const auto& adj : ma) {
         const i32 src_idx = adj.src_idx;
         const auto it_ord = adj.ord_match.begin();
@@ -92,7 +92,21 @@ bool MotionEstimation::estimate_motion_ransac(std::vector<KeyFrame::Ptr>& frames
     return true;
 }
 
-bool MotionEstimation::estimate_motion_non_lin_opt() {
+bool MotionEstimation::estimate_motion_non_lin_opt(VisibilityGraph& landmarks,
+                                                   std::vector<KeyFrame::Ptr>& frames,
+                                                   const Camera::Ptr camera) {
+    if (landmarks.empty() || frames.empty()) {
+        LOG(ERROR) << "The given data is empty:";
+        LOG(ERROR) << "frames: " << frames.empty();
+        LOG(ERROR) << "landmarks: " << landmarks.empty();
+        return false;
+    }
+    BundleAdjustment::Ptr ba = std::make_shared<BundleAdjustment>(OptimizerType::BA_CERES, TypeReprojectionError::REPROJECTION_RT);
+    
+    ba->build_problem(landmarks, frames, camera);
+
+    ba->solve(landmarks, frames);
+
     return true;
 }
 

@@ -15,7 +15,6 @@ class MotionEstimation {
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
     using Ptr = std::shared_ptr<MotionEstimation>;
-    using VisibilityGraph = std::unordered_map<ui32, std::unordered_map<ui64, Landmark::Ptr>>;
 
     MotionEstimation() {}
 
@@ -24,7 +23,9 @@ public:
                                 const std::vector<std::vector<Feature::Ptr>>& feat_pts,
                                 const Camera::Ptr camera,
                                 VisibilityGraph& landmarks);
-    bool estimate_motion_non_lin_opt();
+    bool estimate_motion_non_lin_opt(VisibilityGraph& landmarks,
+                                     std::vector<KeyFrame::Ptr>& frames,
+                                     const Camera::Ptr camera);
 private:
     void estimate_ransac(const std::vector<cv::Point2d>& src, 
                          const std::vector<cv::Point2d>& dst,

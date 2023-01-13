@@ -46,7 +46,7 @@ void Sfm::build_landmark_graph() {
     LOG(INFO) << "matching size after filter outliers: " << matching.size();
 
     MotionEstimation::Ptr me = std::make_shared<MotionEstimation>();
-    MotionEstimation::VisibilityGraph landmarks;
+    VisibilityGraph landmarks;
     me->estimate_motion_ransac(frames, matching, feat_pts, camera, landmarks);
 
     auto size = 0;
@@ -71,10 +71,27 @@ void Sfm::build_landmark_graph() {
             colors.emplace_back(landmark->color());
         }
     }
-    write_ply_file("some.ply", poses, pts, colors);
+    write_ply_file("some_essential_estimation.ply", poses, pts, colors);
 
-    // TODO: motion estimation (non linear optimization)
-    me->estimate_motion_non_lin_opt();
+    me->estimate_motion_non_lin_opt(landmarks, frames, camera);
+
+    pts = std::vector<Vec3>();
+    colors = std::vector<Vec3f>();
+    poses = std::vector<SE3>();
+    for (i32 i = 1; i < frames.size(); ++i) {
+        poses.emplace_back(frames[i]->pose());
+    }
+    for (const auto& cam : landmarks) {
+        for (const auto& lm: cam.second) {
+            const auto landmark = lm.second;
+            if (landmark->pose().z() > 50.0)
+                continue;
+            pts.emplace_back(landmark->pose());
+            colors.emplace_back(landmark->color());
+        }
+    }
+
+    write_ply_file("some_optimize.ply", poses, pts, colors);
 }
 
 };
