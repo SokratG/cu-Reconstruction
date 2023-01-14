@@ -113,8 +113,8 @@ public:
 
         // project to camera image: p = K * P'
         T prediction[2];
-        prediction[0] = f * P[0] / P[2] + center.x();
-        prediction[1] = f * P[0] / P[2] + center.y();
+        prediction[0] = f * P[0] / (P[2] + 1e-7) + center.x();
+        prediction[1] = f * P[0] / (P[2] + 1e-7) + center.y();
 
         residual[0] = prediction[0] - T(observation.x());
         residual[1] = prediction[1] - T(observation.y());
@@ -138,7 +138,7 @@ public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
     using Ptr = std::shared_ptr<CeresOptimizer>;
 
-    CeresOptimizer(const TypeReprojectionError tre, const r64 loss_width = 7.0);
+    CeresOptimizer(const TypeReprojectionError tre, const r64 loss_width = 1.0);
     virtual void build_blocks(const VisibilityGraph& landmarks,
                               const std::vector<KeyFrame::Ptr>& frames,
                               const Camera::Ptr camera) override;

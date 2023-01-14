@@ -11,6 +11,8 @@
 
 #include <boost/uuid/uuid.hpp>
 
+namespace curec {
+
 using i8 = int8_t;
 using ui8 = uint8_t;
 using byte = i8;
@@ -73,5 +75,8 @@ using system_clock = std::chrono::system_clock;
 
 // uuid
 using uuid = boost::uuids::uuid;
+
+};
+
 
 #endif  // CUREC_LIB_TYPES_H

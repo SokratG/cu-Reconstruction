@@ -3,7 +3,7 @@
 
 #include "feature.hpp"
 #include "keyframe.hpp"
-#include <string>
+#include <string_view>
 #include <vector>
 #include <opencv4/opencv2/features2d.hpp>
 
@@ -20,13 +20,13 @@ enum class FeatureDetectorBackend {
 
 class FeatureDetector {
 public:
-    FeatureDetector(const FeatureDetectorBackend backend, const std::string& config);
+    FeatureDetector(const FeatureDetectorBackend backend, const std::string_view config);
 
     bool detect(const KeyFrame::Ptr frame, std::vector<Feature::Ptr>& feature_pts, cv::Mat& descriptor);
     
 protected:
-    cv::Ptr<cv::Feature2D> create_orb(const std::string& config);
-    cv::Ptr<cv::Feature2D> create_sift(const std::string& config);
+    cv::Ptr<cv::Feature2D> create_orb(const std::string_view config);
+    cv::Ptr<cv::Feature2D> create_sift(const std::string_view config);
 private:
     cv::Ptr<cv::Feature2D> detector;
     i32 min_keypoints;

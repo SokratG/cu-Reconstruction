@@ -7,7 +7,7 @@
 
 namespace curec {
 
-MatchAdjacent::MatchAdjacent(const i32 _src_idx) : src_idx(_src_idx) {
+MatchAdjacent::MatchAdjacent(const i32 _src_idx) : src_idx(_src_idx), dst_idx(-1) {
 
 }
 
@@ -28,6 +28,8 @@ void match_descriptors(cv::Ptr<cv::DescriptorMatcher> matcher,
 
 std::vector<MatchAdjacent> feature_matching(const FeatureMatcherBackend backend,
                                             const std::vector<cv::Mat>& descriptors,
+                                            const std::vector<std::vector<Feature::Ptr>>& feat_pts,
+                                            const Mat3& intrinsic,
                                             const MatcherConfig& mcfg) {
     cv::Ptr<cv::DescriptorMatcher> matcher;                                            
     switch (backend) {
@@ -42,62 +44,39 @@ std::vector<MatchAdjacent> feature_matching(const FeatureMatcherBackend backend,
     }
     
     const i32 adj_size = descriptors.size();
+    cv::Mat K;
+    cv::eigen2cv(intrinsic, K);
+    
     std::vector<MatchAdjacent> matching;
     for (i32 i = 0; i < adj_size; ++i) {
         MatchAdjacent match_adj(i);
+        auto max_inliers = 0;
         for (i32 j = i + 1; j < adj_size; ++j) {
             std::vector<cv::DMatch> match;
             match_descriptors(matcher, descriptors[i], descriptors[j], mcfg, match);
-            match_adj.ord_match.insert({j, match});            
-        }
-        matching.emplace_back(match_adj);
-    }
-
-    return matching;
-}
-
-
-std::vector<MatchAdjacent> ransac_filter_outlier(const std::vector<MatchAdjacent>& matches,
-                                                 const std::vector<std::vector<Feature::Ptr>>& feat_pts,
-                                                 const Mat3& intrinsic,
-                                                 const OutlierMatcherConfig& cfg) {
-    std::vector<MatchAdjacent> matching;
-    const i32 adj_size = matches.size();
-    cv::Mat K;
-    cv::eigen2cv(intrinsic, K);
-    for (auto ma_it = matches.begin(); ma_it != matches.end(); ma_it++) {
-        const i32 src_idx = ma_it->src_idx;
-        MatchAdjacent match_adj(src_idx);
-        for (const auto& m : ma_it->ord_match) {
-            const i32 dst_idx = m.first;
-            const auto& match = m.second;
-            const i32 match_size = match.size();
+            const auto match_size = match.size();
 
             std::vector<cv::Point2d> src(match_size), dst(match_size);
-            for (i32 i = 0; i < match_size; ++i) {
-                src[i] = feat_pts[src_idx].at(match.at(i).queryIdx)->position.pt;
-                dst[i] = feat_pts[dst_idx].at(match.at(i).trainIdx)->position.pt;
+            for (i32 k = 0; k < match_size; ++k) {
+                src[k] = feat_pts[i].at(match.at(k).queryIdx)->position.pt;
+                dst[k] = feat_pts[j].at(match.at(k).trainIdx)->position.pt;
             }
 
             cv::Mat inlier_mask; // mask inlier points -> "status": 0 - outlier, 1 - inlier
-            cv::findEssentialMat(src, dst, K, cv::FM_RANSAC, cfg.prob, cfg.threshold, inlier_mask);
+            cv::findEssentialMat(src, dst, K, cv::FM_RANSAC, mcfg.prob, mcfg.threshold, inlier_mask);
             const auto inliers_size = cv::countNonZero(inlier_mask) ;
-            if (inliers_size < cfg.min_inlier) {
-                LOG(WARNING) << "images " << src_idx << " and " << dst_idx << " don't have enough inliers: " << inliers_size; 
+            if (inliers_size < mcfg.min_inlier) {
+                LOG(WARNING) << "images " << i << " and " << j << " don't have enough inliers: " << inliers_size; 
                 continue;
             }
 
-            std::vector<cv::DMatch> inliers(inliers_size);
-            for (i32 i = 0, step = 0; i < inlier_mask.rows; ++i) {
-                if (inlier_mask.at<byte>(i)) {
-                    inliers[step] = match.at(i);
-                    step += 1;
-                } 
-            }
-            match_adj.ord_match.insert({dst_idx, inliers});
+            if (max_inliers < inliers_size) {
+                match_adj.dst_idx = j;
+                match_adj.match = match;
+                max_inliers = inliers_size;
+            }           
         }
-        if (match_adj.ord_match.size() > 0)
-            matching.emplace_back(match_adj);
+        matching.emplace_back(match_adj);
     }
 
     return matching;

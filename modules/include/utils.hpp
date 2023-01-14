@@ -3,7 +3,9 @@
 
 #include "types.hpp"
 #include <unistd.h>
+#include <utility>
 #include <chrono>
+#include <string_view>
 
 #include <boost/uuid/random_generator.hpp>
 #include <boost/uuid/uuid.hpp>
@@ -52,12 +54,13 @@ ui64 gen_combined_key(const ui64 v1, const ui64 v2);
 
 Vec3f cv_rgb_2_eigen_rgb(const cv::Vec3b& cv_color);
 
-bool triangulation(const std::vector<SE3> &poses, 
-                   const std::vector<Vec3> points,
+bool triangulation(const SE3& src_pose,
+                   const SE3& dst_pose,
+                   const std::pair<Vec3, Vec3>& points,
                    const r64 confidence_thrshold,
                    Vec3 &pt_world);
 
-void write_ply_file(const std::string &filename, const std::vector<SE3>& poses, 
+void write_ply_file(const std::string_view filename, const std::vector<SE3>& poses, 
                     const std::vector<Vec3>& pts, const std::vector<Vec3f>& color);
 
 };

@@ -4,7 +4,7 @@
 
 namespace curec {
 
-FeatureDetector::FeatureDetector(const FeatureDetectorBackend backend, const std::string& config) : 
+FeatureDetector::FeatureDetector(const FeatureDetectorBackend backend, const std::string_view config) : 
                                  min_keypoints(200)
 {
     switch (backend) {
@@ -19,12 +19,12 @@ FeatureDetector::FeatureDetector(const FeatureDetectorBackend backend, const std
     }
 }
 
-cv::Ptr<cv::Feature2D> FeatureDetector::create_orb(const std::string& config) {
+cv::Ptr<cv::Feature2D> FeatureDetector::create_orb(const std::string_view config) {
     // TODO: add config read ORB parameters
     return cv::ORB::create(1000, 1.2, 8, 31, 0, 3, cv::ORB::HARRIS_SCORE);
 }
 
-cv::Ptr<cv::Feature2D> FeatureDetector::create_sift(const std::string& config) {
+cv::Ptr<cv::Feature2D> FeatureDetector::create_sift(const std::string_view config) {
     // TODO: add config read SIFT parameters
     return cv::SIFT::create(0, 3, 0.04, 10, 1.6);
 }

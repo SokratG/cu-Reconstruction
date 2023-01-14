@@ -100,18 +100,17 @@ void CeresOptimizer::add_block(CeresCameraModel& ceres_camera,
                                const Vec2& observ_pt,
                                const Mat3& K) {
     ceres::CostFunction* cost_f = get_cost_function(K, observ_pt);
-    // HuberLoss(1.0)
-    ceres::LossFunction* loss_f = loss_width > 0 ? new ceres::CauchyLoss(loss_width) : nullptr;
+    ceres::LossFunction* loss_f = loss_width > 0 ? new ceres::HuberLoss(loss_width) : nullptr;
     optim_problem->AddResidualBlock(cost_f, loss_f, ceres_camera.raw_camera_param, landmark.obs);
 }
 
 void CeresOptimizer::optimize(const i32 n_iteration, const i32 num_threads, const bool fullreport) {
     ceres::Solver::Options options;
-    options.linear_solver_type = ceres::LinearSolverType::SPARSE_SCHUR;
+    options.linear_solver_type = ceres::LinearSolverType::SPARSE_SCHUR; // ITERATIVE_SCHUR
     options.num_threads = num_threads;
     if (n_iteration > 0) 
         options.max_num_iterations = n_iteration;
-    options.minimizer_progress_to_stdout = true; // false
+    options.minimizer_progress_to_stdout = true;
 
     ceres::Solver::Summary summary;
     ceres::Solve(options, optim_problem.get(), &summary);
