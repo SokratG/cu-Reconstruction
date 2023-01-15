@@ -8,8 +8,6 @@
 #include <numeric>
 #include <glog/logging.h>
 
-#include "CudaSift/cudaSift.h"
-
 namespace curec {
 
 
