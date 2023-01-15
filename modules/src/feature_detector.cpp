@@ -1,5 +1,6 @@
 #include "feature_detector.hpp"
 #include "cr_exception.hpp"
+#include "cuda_sift.hpp"
 #include <glog/logging.h>
 
 namespace curec {
@@ -26,22 +27,23 @@ cv::Ptr<cv::Feature2D> FeatureDetector::create_orb(const std::string_view config
 
 cv::Ptr<cv::Feature2D> FeatureDetector::create_sift(const std::string_view config) {
     // TODO: add config read SIFT parameters
-    return cv::SIFT::create(0, 3, 0.04, 10, 1.6);
+    return CudaSift::create();
 }
 
 
-bool FeatureDetector::detect(const KeyFrame::Ptr frame, std::vector<Feature::Ptr>& feature_pts, cv::Mat& descriptor) {
+bool FeatureDetector::detectAndCompute(const KeyFrame::Ptr frame, std::vector<Feature::Ptr>& feature_pts, cv::Mat& descriptor) {
     cv::Mat image = frame->frame();
     if (image.empty()) 
         throw CuRecException("The given image has no data!");
     std::vector<cv::KeyPoint> k_pts;
     detector->detectAndCompute(image, cv::noArray(), k_pts, descriptor);
 
+
     if (k_pts.size() < min_keypoints) {
         LOG(WARNING) << "detected number of key points: " << k_pts.size() <<  ", less then minimum required: " << min_keypoints;
         return false;
     }
-
+    
     feature_pts = std::vector<Feature::Ptr>();
     for (auto idx = 0; idx < k_pts.size(); ++idx) {
         feature_pts.emplace_back(std::make_shared<Feature>(frame, k_pts[idx]));

@@ -8,6 +8,7 @@
 #include <numeric>
 #include <glog/logging.h>
 
+#include "CudaSift/cudaSift.h"
 
 namespace curec {
 
@@ -108,7 +109,7 @@ void Sfm::detect_feature(std::vector<std::vector<Feature::Ptr>>& feat_pts, std::
     for (const auto frame : frames) {
         std::vector<Feature::Ptr> kpts;
         cv::Mat descriptor;
-        fd.detect(frame, kpts, descriptor);
+        fd.detectAndCompute(frame, kpts, descriptor);
         descriptors.emplace_back(descriptor);
         feat_pts.emplace_back(kpts);
     }

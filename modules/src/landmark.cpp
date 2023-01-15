@@ -10,32 +10,26 @@ Landmark::Landmark(const uuid& _id, const Vec3& _position, const Vec3f& _color) 
 }
 
 Vec3 Landmark::pose() const {
-    std::unique_lock<std::mutex> lck(data_mutex);
     return position;
 }
 
 void Landmark::pose(const Vec3& _position) {
-    std::unique_lock<std::mutex> lck(data_mutex);
     position = _position;
 };
 
 Vec3f Landmark::color() const {
-    std::unique_lock<std::mutex> lck(data_mutex);
     return landmark_color;
 }
 
 void Landmark::color(const Vec3f& _color) {
-    std::unique_lock<std::mutex> lck(data_mutex);
     landmark_color = _color;
 }
 
 void Landmark::observation(const std::shared_ptr<Feature> feature) {
-    std::unique_lock<std::mutex> lck(data_mutex);
     observation_pt = feature;
 }
 
 std::shared_ptr<Feature> Landmark::observation() const {
-    std::unique_lock<std::mutex> lck(data_mutex);
     return observation_pt;
 }
 

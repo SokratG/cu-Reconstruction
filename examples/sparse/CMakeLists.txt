@@ -7,14 +7,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(GFlags REQUIRED)
 # glog
 find_package(Glog REQUIRED)
-# reconstruction library
+# photogrammetry library
 find_library(CUREC_LIB curec_lib)
 
 include_directories("${PROJECT_SOURCE_DIR}/modules/include")
 include_directories(${GFLAGS_INCLUDE_DIRS})
 include_directories(${GLOG_INCLUDE_DIRS})
 
-file(GLOB SRC_MAIN_APP "*.c*")
+file(GLOB SRC_MAIN_APP "*.cpp")
 
 add_executable(sparse ${SRC_MAIN_APP})
 

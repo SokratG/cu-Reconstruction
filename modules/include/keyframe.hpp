@@ -48,7 +48,6 @@ private:
     SE3 camera_pose;
     // image
     cv::Mat frame_image;
-    mutable std::mutex pose_mutex;
     std::vector<std::shared_ptr<Landmark>> features;
 };
 

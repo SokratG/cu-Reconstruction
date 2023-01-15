@@ -18,4 +18,5 @@
 * [Ceres-Solver](http://ceres-solver.org/)
 * [Sophus](https://github.com/strasdat/Sophus)
 * [Pangolin](https://github.com/stevenlovegrove/Pangolin)
+* [CudaSift](https://github.com/Celebrandil/CudaSift)
 

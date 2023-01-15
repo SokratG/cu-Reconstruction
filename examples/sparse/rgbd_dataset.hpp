@@ -1,7 +1,6 @@
 #ifndef RGBD_IMAGE_DATASET_HPP
 #define RGBD_IMAGE_DATASET_HPP
 
-
 #include "image_dataset.hpp"
 #include <tuple>
 

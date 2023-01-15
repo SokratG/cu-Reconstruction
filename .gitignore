@@ -1,4 +1,5 @@
 .vscode/
 build/
 data/dataset/
+3dparty/CudaSift/
 *.ply

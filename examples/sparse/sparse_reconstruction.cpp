@@ -5,6 +5,7 @@
 #include "rgbd_dataset.hpp"
 #include "sfm.hpp"
 
+
 DEFINE_string(dir_path, "./data/dataset/rgbd/scene01", "dataset file path");
 
 int main(int argc, char* argv[]) {
@@ -19,7 +20,7 @@ int main(int argc, char* argv[]) {
 
     curec::RGBDDataset rgbd_dataset(FLAGS_dir_path);
     curec::Sfm sfm(kinect_rgb);
-    for (auto i = 0; i < 8; ++i) {
+    for (auto i = 0; i < 6; ++i) {
         auto [rgb, depth] = rgbd_dataset.get_next();
         sfm.add_frame(rgb);
     }

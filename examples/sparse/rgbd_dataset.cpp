@@ -42,8 +42,9 @@ RGBD RGBDDataset::get_next() {
         return {cv::Mat(), cv::Mat()};
     }
     cv::Mat rgb = cv::imread(*current_file, cv::IMREAD_COLOR);
+    cv::cvtColor(rgb, rgb, cv::COLOR_BGR2RGB);
     std::advance(current_file, 1);
-    cv::Mat depth = cv::imread(*current_file, cv::IMREAD_UNCHANGED);
+    cv::Mat depth = cv::imread(*current_file, cv::IMREAD_UNCHANGED); // cv::IMREAD_ANYDEPTH
     std::advance(current_file, 1);
     return {rgb, depth};
 }
