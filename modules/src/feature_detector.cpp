@@ -1,6 +1,10 @@
 #include "feature_detector.hpp"
 #include "cr_exception.hpp"
 #include "cuda_sift.hpp"
+
+#include <opencv2/cudaimgproc.hpp>
+#include <opencv2/cudafeatures2d.hpp>
+
 #include <glog/logging.h>
 
 namespace curec {
@@ -22,7 +26,7 @@ FeatureDetector::FeatureDetector(const FeatureDetectorBackend backend, const std
 
 cv::Ptr<cv::Feature2D> FeatureDetector::create_orb(const std::string_view config) {
     // TODO: add config read ORB parameters
-    return cv::ORB::create(1000, 1.2, 8, 31, 0, 3, cv::ORB::HARRIS_SCORE);
+    return cv::cuda::ORB::create(1000, 1.2, 8, 31, 0, 3, cv::ORB::HARRIS_SCORE);
 }
 
 cv::Ptr<cv::Feature2D> FeatureDetector::create_sift(const std::string_view config) {
@@ -31,13 +35,17 @@ cv::Ptr<cv::Feature2D> FeatureDetector::create_sift(const std::string_view confi
 }
 
 
-bool FeatureDetector::detectAndCompute(const KeyFrame::Ptr frame, std::vector<Feature::Ptr>& feature_pts, cv::Mat& descriptor) {
-    cv::Mat image = frame->frame();
+bool FeatureDetector::detectAndCompute(const KeyFrame::Ptr frame, 
+                                       std::vector<Feature::Ptr>& feature_pts, 
+                                       cv::cuda::GpuMat& descriptor) {
+    const cv::cuda::GpuMat image = frame->frame();
     if (image.empty()) 
         throw CuRecException("The given image has no data!");
     std::vector<cv::KeyPoint> k_pts;
-    detector->detectAndCompute(image, cv::noArray(), k_pts, descriptor);
+    cv::cuda::GpuMat gray;
+    cv::cuda::cvtColor(image, gray, cv::COLOR_RGB2GRAY);
 
+    detector->detectAndCompute(gray, cv::noArray(), k_pts, descriptor);
 
     if (k_pts.size() < min_keypoints) {
         LOG(WARNING) << "detected number of key points: " << k_pts.size() <<  ", less then minimum required: " << min_keypoints;
@@ -49,7 +57,8 @@ bool FeatureDetector::detectAndCompute(const KeyFrame::Ptr frame, std::vector<Fe
         feature_pts.emplace_back(std::make_shared<Feature>(frame, k_pts[idx]));
     }
 
-    descriptor.convertTo(descriptor, CV_32F);
+    if (descriptor.depth() != CV_32F)
+        descriptor.convertTo(descriptor, CV_32F);
 
     return true;
 }

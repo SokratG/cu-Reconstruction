@@ -14,7 +14,7 @@ namespace curec {
 static Landmark::Ptr make_landmark(const Feature::Ptr feat_pt, const Vec3& position_world) 
 {
     const auto pt2 = feat_pt->position.pt;
-    const Vec3f color = cv_rgb_2_eigen_rgb(feat_pt->frame.lock()->frame().at<cv::Vec3b>(pt2));
+    const Vec3f color(255.f, 255.f, 255.f); //cv_rgb_2_eigen_rgb(feat_pt->frame.lock()->frame().at<cv::Vec3b>(pt2));
     Landmark::Ptr landmark = Landmark::create_landmark(position_world, color);
     landmark->observation(feat_pt);
     return landmark;
@@ -41,7 +41,7 @@ Sfm::Sfm(const Camera::Ptr _camera) : camera(_camera) {
 }
 
 
-bool Sfm::add_frame(const cv::Mat frame) {
+bool Sfm::add_frame(const cv::cuda::GpuMat frame) {
     if (frame.empty()) {
         LOG(WARNING) << "The given image in SFM is empty!";
         return false;
@@ -103,17 +103,16 @@ void Sfm::store_to_ply(const std::string_view& ply_filepath, const r64 range_thr
 void Sfm::detect_feature(std::vector<std::vector<Feature::Ptr>>& feat_pts, std::vector<MatchAdjacent>& matching) {
     // TODO add config
     FeatureDetector fd(FeatureDetectorBackend::SIFT, "");
-    std::vector<cv::Mat> descriptors;
+    std::vector<cv::cuda::GpuMat> descriptors;
     for (const auto frame : frames) {
         std::vector<Feature::Ptr> kpts;
-        cv::Mat descriptor;
+        cv::cuda::GpuMat descriptor;
         fd.detectAndCompute(frame, kpts, descriptor);
         descriptors.emplace_back(descriptor);
         feat_pts.emplace_back(kpts);
     }
 
-    matching = feature_matching(FeatureMatcherBackend::BRUTEFORCE,
-                                descriptors,
+    matching = feature_matching(descriptors,
                                 feat_pts,
                                 camera->K());
 }

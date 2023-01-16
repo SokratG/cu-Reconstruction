@@ -3,9 +3,11 @@
 
 #include "feature.hpp"
 #include "keyframe.hpp"
+
 #include <string_view>
 #include <vector>
-#include <opencv4/opencv2/features2d.hpp>
+
+#include <opencv2/features2d/features2d.hpp>
 
 namespace curec {
 
@@ -22,7 +24,7 @@ class FeatureDetector {
 public:
     FeatureDetector(const FeatureDetectorBackend backend, const std::string_view config);
 
-    bool detectAndCompute(const KeyFrame::Ptr frame, std::vector<Feature::Ptr>& feature_pts, cv::Mat& descriptor);
+    bool detectAndCompute(const KeyFrame::Ptr frame, std::vector<Feature::Ptr>& feature_pts, cv::cuda::GpuMat& descriptor);
     
 protected:
     cv::Ptr<cv::Feature2D> create_orb(const std::string_view config);

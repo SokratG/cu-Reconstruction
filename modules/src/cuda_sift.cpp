@@ -1,6 +1,7 @@
 #include "cuda_sift.hpp"
 #include "CudaSift/cudaImage.h"
 #include "cr_exception.hpp"
+#include <opencv2/core/cuda.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
 
@@ -56,16 +57,19 @@ void CudaSiftWrapper::detectAndCompute(cv::InputArray image, cv::InputArray mask
         cv::InputArray mask: not used
         bool useProvidedKeypoints: not used
     */ 
-    if(image.empty() || image.depth() != CV_8U)
+   	cv::cuda::GpuMat refCudaImage = image.getGpuMat();
+	cv::cuda::GpuMat& refCudaDesc = descriptors.getGpuMatRef();
+    if(refCudaImage.empty() || refCudaImage.depth() != CV_8U)
         throw CuRecException("image is empty or has incorrect depth (!=CV_8U)");
 
-	cv::Mat tmpImage;
-	cv::cvtColor(image.getMat(), tmpImage, cv::COLOR_RGB2GRAY);
+	cv::Mat tmpImage, cpu_descriptor;
+	refCudaImage.download(tmpImage);
 	tmpImage.convertTo(tmpImage, CV_32FC1);
-	CudaImage cudaImg;
-	cudaImg.Allocate(image.size().width, image.size().height, iAlignUp(image.size().width, SIFT_DESC_DIM), false, NULL, (r32*)tmpImage.data);
-	cudaImg.Download();
 
+	CudaImage cudaImg;
+	// TODO: add cuda::GpuMat.data;
+	cudaImg.Allocate(refCudaImage.cols, refCudaImage.rows, iAlignUp(image.size().width, SIFT_DESC_DIM), false, NULL, (r32*)tmpImage.data);
+	cudaImg.Download();
 
 	ExtractSift(siftData, cudaImg, sp.numOctaves, sp.initBlur, sp.thresh, sp.minScale, sp.upScale);
 
@@ -78,13 +82,13 @@ void CudaSiftWrapper::detectAndCompute(cv::InputArray image, cv::InputArray mask
 	});
 
 	// Convert SiftData to Mat Descriptor
-	std::vector<float> data;
+	std::vector<r32> data;
 	for (i32 i = 0; i < siftData.numPts; i++) {
 		data.insert(data.end(), siftData.h_data[i].data, siftData.h_data[i].data + SIFT_DESC_DIM);
 	}
 
 	cv::Mat tempDescriptor(siftData.numPts, SIFT_DESC_DIM, CV_32FC1, &data[0]);
-	tempDescriptor.copyTo(descriptors); // Inefficient!
+	refCudaDesc.upload(tempDescriptor);
 }
 
 };

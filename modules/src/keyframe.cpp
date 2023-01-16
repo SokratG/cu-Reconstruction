@@ -8,7 +8,7 @@ KeyFrame::KeyFrame() {
 
 }
 
-KeyFrame::KeyFrame(const uuid& _id, const cv::Mat& _image,
+KeyFrame::KeyFrame(const uuid& _id, const cv::cuda::GpuMat& _image,
                    const SE3& _camera_pose, const time_point _time_stamp) :
     id(_id), time_stamp(_time_stamp), camera_pose(_camera_pose), frame_image(_image) {
     
@@ -27,7 +27,7 @@ void KeyFrame::pose(const Mat3& rotation, const Vec3& translation) {
     camera_pose = se3;
 }
 
-KeyFrame::Ptr KeyFrame::create_keyframe(const cv::Mat& image,
+KeyFrame::Ptr KeyFrame::create_keyframe(const cv::cuda::GpuMat& image,
                                         const SE3& camera_pose) {
     const uuid id = UUID::gen();
     const time_point time_stamp = system_clock::now();

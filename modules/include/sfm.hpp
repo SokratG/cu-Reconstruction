@@ -6,8 +6,11 @@
 #include "camera.hpp"
 #include "landmark.hpp"
 #include <string_view>
-#include <opencv2/core/core.hpp>
 #include <vector>
+
+#include <opencv2/core/cuda.hpp>
+#include <opencv2/core/core.hpp>
+
 
 namespace curec {
 
@@ -17,7 +20,7 @@ struct MatchAdjacent;
 class Sfm {
 public:
     Sfm(const Camera::Ptr camera);
-    bool add_frame(const cv::Mat frame);
+    bool add_frame(const cv::cuda::GpuMat frame);
     void run_pipeline();
     void store_to_ply(const std::string_view& ply_filepath, const r64 depth_threshold = 40.0);
 private:

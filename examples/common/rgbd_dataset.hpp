@@ -2,12 +2,13 @@
 #define RGBD_IMAGE_DATASET_HPP
 
 #include "image_dataset.hpp"
+#include <opencv2/core/cuda.hpp>
 #include <tuple>
 
 namespace curec {
 
-using RGB = cv::Mat;
-using DEPTH = cv::Mat;
+using RGB = cv::cuda::GpuMat;
+using DEPTH = cv::cuda::GpuMat;
 using RGBD = std::tuple<RGB, DEPTH>;
 
 class RGBDDataset : public ImageDataset<RGBD> {

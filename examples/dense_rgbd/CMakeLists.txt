@@ -15,12 +15,11 @@ include_directories("${PROJECT_SOURCE_DIR}/examples/common")
 include_directories(${GFLAGS_INCLUDE_DIRS})
 include_directories(${GLOG_INCLUDE_DIRS})
 
-set(SRC_SPARSE "sparse_reconstruction.cpp" "${PROJECT_SOURCE_DIR}/examples/common/rgbd_dataset.cpp")
+set(SRC_DENSE_PC "dense_pointcloud.cpp" "${PROJECT_SOURCE_DIR}/examples/common/rgbd_dataset.cpp")
 
-add_executable(sparse ${SRC_SPARSE})
+add_executable(dense_pc ${SRC_DENSE_PC})
 
-target_link_libraries(sparse curec_lib)
-target_link_libraries(sparse ${GFLAGS_LIBRARIES})
-target_link_libraries(sparse ${GLOG_LIBRARIES})
-target_link_libraries(sparse stdc++fs)
-
+target_link_libraries(dense_pc curec_lib)
+target_link_libraries(dense_pc ${GFLAGS_LIBRARIES})
+target_link_libraries(dense_pc ${GLOG_LIBRARIES})
+target_link_libraries(dense_pc stdc++fs)

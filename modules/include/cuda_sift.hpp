@@ -3,8 +3,7 @@
 
 #include "types.hpp"
 #include "CudaSift/cudaSift.h"
-#include <opencv2/core/core.hpp>
-#include <opencv4/opencv2/features2d.hpp>
+#include <opencv2/features2d/features2d.hpp>
 
 namespace curec {
 

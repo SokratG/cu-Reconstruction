@@ -2,7 +2,7 @@
 #define CUREC_LIB_KEYFRAME_HPP
 
 #include "types.hpp"
-#include <opencv2/core/core.hpp>
+#include <opencv2/core/cuda.hpp>
 #include <memory>
 #include <mutex>
 #include <vector>
@@ -17,7 +17,7 @@ public:
     using Ptr = std::shared_ptr<KeyFrame>;
 
     // factory build mode, assign id
-    static std::shared_ptr<KeyFrame> create_keyframe(const cv::Mat& image, const SE3& camera_pose);
+    static std::shared_ptr<KeyFrame> create_keyframe(const cv::cuda::GpuMat& image, const SE3& camera_pose);
     static std::shared_ptr<KeyFrame> create_keyframe();
 
 
@@ -28,8 +28,8 @@ public:
     SE3 pose() const;
     void pose(const SE3& camera_pose);
     void pose(const Mat3& rotation, const Vec3& translation);
-    cv::Mat frame() const {return frame_image;}
-    void frame(const cv::Mat frame) {frame_image = frame;}
+    cv::cuda::GpuMat frame() const {return frame_image;}
+    void frame(const cv::cuda::GpuMat frame) {frame_image = frame;}
     Mat34 get_projection_mat(const Mat3& K) const;
 
 public:
@@ -40,14 +40,14 @@ public:
 protected:
     KeyFrame();
     KeyFrame(const uuid& id,
-             const cv::Mat& image,
+             const cv::cuda::GpuMat& image,
              const SE3& camera_pose,
              const time_point time_stamp);
 private:
     // T_CAMERA_WORLD form Pose
     SE3 camera_pose;
     // image
-    cv::Mat frame_image;
+    cv::cuda::GpuMat frame_image;
     std::vector<std::shared_ptr<Landmark>> features;
 };
 
