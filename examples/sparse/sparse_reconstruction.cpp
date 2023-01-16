@@ -20,7 +20,7 @@ int main(int argc, char* argv[]) {
 
     curec::RGBDDataset rgbd_dataset(FLAGS_dir_path);
     curec::Sfm sfm(kinect_rgb);
-    for (auto i = 0; i < 6; ++i) {
+    for (auto i = 0; i < rgbd_dataset.num_files(); ++i) {
         auto [rgb, depth] = rgbd_dataset.get_next();
         sfm.add_frame(rgb);
     }

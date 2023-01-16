@@ -8,10 +8,10 @@
 namespace curec {
 
 struct SiftParams {
-    i32 maxKeypoints = 1000;
-    i32 numOctaves = 5;
+    i32 maxKeypoints = 1500;
+    i32 numOctaves = 6;
 	r32 initBlur = 1.0f;
-	r32 thresh = 2.0f; //3.5f;
+	r32 thresh = 1.7f; //3.5f;
 	r32 minScale = 0.0f;
 	bool upScale = false;
 };

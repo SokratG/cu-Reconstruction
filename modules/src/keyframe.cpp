@@ -27,6 +27,13 @@ void KeyFrame::pose(const Mat3& rotation, const Vec3& translation) {
     camera_pose = se3;
 }
 
+Vec3f KeyFrame::get_color(const cv::Point2f& pt) {
+    if (color_image.empty())
+        frame_image.download(color_image);
+
+    return cv_rgb_2_eigen_rgb(color_image.at<cv::Vec3b>(pt));
+}
+
 KeyFrame::Ptr KeyFrame::create_keyframe(const cv::cuda::GpuMat& image,
                                         const SE3& camera_pose) {
     const uuid id = UUID::gen();

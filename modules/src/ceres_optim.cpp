@@ -71,8 +71,8 @@ void CeresOptimizer::reset() {
 }
 
 void CeresOptimizer::build_blocks(const VisibilityGraph& landmarks,
-                                const std::vector<KeyFrame::Ptr>& frames,
-                                const Camera::Ptr camera) {
+                                  const std::vector<KeyFrame::Ptr>& frames,
+                                  const Camera::Ptr camera) {
     if (landmarks.empty() || frames.empty())
         throw CuRecException("Error: the given(landmarks | frames) data is empty!");
 
@@ -81,17 +81,17 @@ void CeresOptimizer::build_blocks(const VisibilityGraph& landmarks,
         CeresCameraModel c_cam(frame->pose(), K);
         ceres_cameras.insert({frame->id, c_cam});
     }
-    for (const auto frame : landmarks) {
-        for (const auto lms : frame.second) {
-            const auto landmark = lms.second;
-            const auto frame_id = landmark->observation()->frame.lock()->id;
-            const auto& ccam = ceres_cameras.at(frame_id);
-            const auto key_pt = landmark->observation()->position.pt;
-            const Vec2 obs_pt(key_pt.x, key_pt.y);
-            CeresObservation co(landmark->pose());
-            ceres_obseravations.insert({landmark->id, co});
-            add_block(ceres_cameras.at(frame_id), ceres_obseravations.at(landmark->id), obs_pt, K);
-        }
+    
+    for (const auto landmark_pair : landmarks) {
+        const auto landmark = landmark_pair.second;
+        const auto frame_id = landmark->observation()->frame.lock()->id;
+        const auto& ccam = ceres_cameras.at(frame_id);
+        const auto key_pt = landmark->observation()->position.pt;
+        const Vec2 obs_pt(key_pt.x, key_pt.y);
+        CeresObservation co(landmark->pose());
+        ceres_obseravations.insert({landmark->id, co});
+        add_block(ceres_cameras.at(frame_id), ceres_obseravations.at(landmark->id), obs_pt, K);
+        
     }
 }
 
@@ -126,12 +126,9 @@ void CeresOptimizer::store_result(VisibilityGraph& landmarks, std::vector<KeyFra
         frame->pose(c_cam.pose());
     }
 
-    for (auto& frame : landmarks) {
-        for (auto& lms : frame.second) {
-            auto landmark = lms.second;
-            const auto& c_obs = ceres_obseravations.at(landmark->id);
-            landmark->pose(c_obs.position());
-        }
+    for (auto& landmark : landmarks) {
+        const auto& c_obs = ceres_obseravations.at(landmark.second->id);
+        landmark.second->pose(c_obs.position());
     }
 }
 

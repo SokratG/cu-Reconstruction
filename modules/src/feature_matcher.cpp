@@ -103,12 +103,22 @@ std::vector<MatchAdjacent> feature_matching(const std::vector<cv::cuda::GpuMat>&
 
             cv::Mat inlier_mask; // mask inlier points -> "status": 0 - outlier, 1 - inlier
             cv::findEssentialMat(src, dst, K, cv::FM_RANSAC, mcfg.prob, mcfg.threshold, inlier_mask);
-            const auto inliers_size = cv::countNonZero(inlier_mask) ;
+            auto inliers_size = 0;
+            for (i32 k = 0; k < inlier_mask.rows; ++k) {
+                if (inlier_mask.at<byte>(k)) {
+                    inliers_size += 1;
+                } else {
+                    feat_pts[i].at(match.at(k).queryIdx)->outlier(true);
+                    feat_pts[j].at(match.at(k).trainIdx)->outlier(true);
+                }
+                    
+            }
+
             if (inliers_size < mcfg.min_inlier) {
                 LOG(WARNING) << "images " << i << " and " << j << " don't have enough inliers: " << inliers_size; 
                 continue;
             }
-
+            
             if (max_inliers < inliers_size) {
                 match_adj.dst_idx = j;
                 match_adj.match = match;

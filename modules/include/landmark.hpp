@@ -6,6 +6,7 @@
 #include <opencv2/core/core.hpp>
 #include <memory>
 #include <mutex>
+#include <list>
 #include <unordered_map>
 
 
@@ -44,7 +45,7 @@ private:
 
 
 // 
-using VisibilityGraph = std::unordered_map<ui32, std::unordered_map<ui64, Landmark::Ptr>>;
+using VisibilityGraph = std::unordered_map<ui32, Landmark::Ptr>;
 
 };
 
