@@ -53,6 +53,12 @@ bool Sfm::add_frame(const cv::cuda::GpuMat frame) {
     return true;
 }
 
+
+std::vector<KeyFrame::Ptr> Sfm::get_frames() const {
+    return frames;
+}
+
+
 void Sfm::run_pipeline() {
     // TODO add config struct
     if (frames.empty()) {

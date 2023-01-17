@@ -23,6 +23,7 @@ public:
     bool add_frame(const cv::cuda::GpuMat frame);
     void run_pipeline();
     void store_to_ply(const std::string_view& ply_filepath, const r64 depth_threshold = 40.0);
+    std::vector<KeyFrame::Ptr> get_frames() const;
 private:
 
     void detect_feature(std::vector<std::vector<Feature::Ptr>>& feat_pts,

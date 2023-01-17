@@ -1,0 +1,8 @@
+#ifndef CUREC_LIB_POINT_CLOUD_ESTIMATOR_HPP
+#define CUREC_LIB_POINT_CLOUD_ESTIMATOR_HPP
+
+namespace curec {
+
+};
+
+#endif
