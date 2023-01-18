@@ -3,12 +3,8 @@
 
 #include "types.hpp"
 #include "feature.hpp"
-#include <opencv2/core/core.hpp>
 #include <memory>
 #include <mutex>
-#include <list>
-#include <unordered_map>
-
 
 namespace curec {
 
@@ -43,9 +39,6 @@ private:
     std::shared_ptr<Feature> observation_pt;
 };
 
-
-// 
-using VisibilityGraph = std::unordered_map<ui32, Landmark::Ptr>;
 
 };
 

@@ -6,6 +6,8 @@
 #include <utility>
 #include <chrono>
 #include <string_view>
+#include <set>
+#include <string>
 
 #include <boost/uuid/random_generator.hpp>
 #include <boost/uuid/uuid.hpp>
@@ -62,6 +64,9 @@ bool triangulation(const SE3& src_pose,
 
 void write_ply_file(const std::string_view filename, const std::vector<SE3>& poses, 
                     const std::vector<Vec3>& pts, const std::vector<Vec3f>& color);
+
+
+std::set<std::string> files_directory(const std::string& data_path, const std::set<std::string>& extensions);
 
 };
 

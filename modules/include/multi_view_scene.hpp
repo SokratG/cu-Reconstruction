@@ -2,6 +2,7 @@
 #define CUREC_LIB_MUTLI_VIEW_SCENE_HPP
 
 #include "camera.hpp"
+#include "keyframe.hpp"
 #include <opencv2/core/cuda.hpp>
 
 namespace curec {
@@ -48,7 +49,7 @@ class MultiViewSceneStereo : public MultiViewScene {
 public:
     MultiViewSceneStereo(const Camera::Ptr camera);
     bool add_frame(const cv::cuda::GpuMat left, const cv::cuda::GpuMat right);
-    void run_reconstruction() override;
+    void reconstruct_scene() override;
 };
 
 

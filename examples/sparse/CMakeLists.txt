@@ -15,12 +15,12 @@ include_directories("${PROJECT_SOURCE_DIR}/examples/common")
 include_directories(${GFLAGS_INCLUDE_DIRS})
 include_directories(${GLOG_INCLUDE_DIRS})
 
-set(SRC_SPARSE "sparse_reconstruction.cpp" "${PROJECT_SOURCE_DIR}/examples/common/rgbd_dataset.cpp")
+set(SRC_SPARSE "sparse_reconstruction.cpp" 
+               "${PROJECT_SOURCE_DIR}/examples/common/rgbd_dataset.cpp"
+               "${PROJECT_SOURCE_DIR}/examples/common/rgb_dataset.cpp")
 
 add_executable(sparse ${SRC_SPARSE})
 
 target_link_libraries(sparse curec_lib)
 target_link_libraries(sparse ${GFLAGS_LIBRARIES})
 target_link_libraries(sparse ${GLOG_LIBRARIES})
-target_link_libraries(sparse stdc++fs)
-

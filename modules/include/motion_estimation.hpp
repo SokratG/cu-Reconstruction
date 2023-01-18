@@ -5,8 +5,8 @@
 #include "keyframe.hpp"
 #include "landmark.hpp"
 #include "camera.hpp"
+#include "visibility_graph.hpp"
 #include <memory>
-#include <unordered_map>
 
 namespace curec {
 
@@ -34,8 +34,10 @@ public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
     using Ptr = std::shared_ptr<MotionEstimationOptimization>;
 
-    bool estimate_motion(VisibilityGraph& landmarks,
+    bool estimate_motion(std::vector<Landmark::Ptr>& landmarks,
                          std::vector<KeyFrame::Ptr>& frames,
+                         const VisibilityGraph& vis_graph,
+                         const std::vector<std::vector<Feature::Ptr>>& feat_pts,
                          const Camera::Ptr camera);
 };
 

@@ -59,8 +59,10 @@ bool MotionEstimationRansac::estimate_motion(std::vector<KeyFrame::Ptr>& frames,
     return true;
 }
 
-bool MotionEstimationOptimization::estimate_motion(VisibilityGraph& landmarks,
+bool MotionEstimationOptimization::estimate_motion(std::vector<Landmark::Ptr>& landmarks,
                                                    std::vector<KeyFrame::Ptr>& frames,
+                                                   const VisibilityGraph& vis_graph,
+                                                   const std::vector<std::vector<Feature::Ptr>>& feat_pts,
                                                    const Camera::Ptr camera) {
     if (landmarks.empty() || frames.empty()) {
         LOG(ERROR) << "The given data is empty:";
@@ -71,7 +73,7 @@ bool MotionEstimationOptimization::estimate_motion(VisibilityGraph& landmarks,
     BundleAdjustment::Ptr ba = std::make_shared<BundleAdjustment>(OptimizerType::BA_CERES, 
                                                                   TypeReprojectionError::REPROJECTION_RT);
     
-    ba->build_problem(landmarks, frames, camera);
+    ba->build_problem(vis_graph, landmarks, frames, feat_pts, camera);
 
     ba->solve(landmarks, frames);
 

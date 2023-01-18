@@ -5,6 +5,7 @@
 #include "feature.hpp"
 #include "camera.hpp"
 #include "landmark.hpp"
+#include "visibility_graph.hpp"
 #include <string_view>
 #include <vector>
 
@@ -22,7 +23,7 @@ public:
     Sfm(const Camera::Ptr camera);
     bool add_frame(const cv::cuda::GpuMat frame);
     void run_pipeline();
-    void store_to_ply(const std::string_view& ply_filepath, const r64 depth_threshold = 40.0);
+    void store_to_ply(const std::string_view& ply_filepath, const r64 depth_threshold);
     std::vector<KeyFrame::Ptr> get_frames() const;
 private:
 
@@ -36,7 +37,8 @@ private:
                                           std::vector<std::vector<Feature::Ptr>>& feat_pts);
 private:
     std::vector<KeyFrame::Ptr> frames;
-    VisibilityGraph landmarks;
+    VisibilityGraph vis_graph;
+    std::vector<Landmark::Ptr> landmarks;
     Camera::Ptr camera;
 };
 

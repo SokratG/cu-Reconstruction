@@ -6,7 +6,6 @@
 #include "cr_exception.hpp"
 
 #include <numeric>
-#include <list>
 #include <glog/logging.h>
 
 namespace curec {
@@ -86,8 +85,7 @@ void Sfm::store_to_ply(const std::string_view& ply_filepath, const r64 range_thr
         poses.emplace_back(frames[i]->pose());
     }
 
-    for (const auto& landmark_pair : landmarks) {
-        const auto landmark = landmark_pair.second;
+    for (const auto& landmark : landmarks) {
         if (landmark->pose().z() > range_threshold || 
             landmark->pose().y() > range_threshold ||
             landmark->pose().y() < -range_threshold ||
@@ -132,23 +130,54 @@ VisibilityGraph Sfm::build_landmarks_graph(const std::vector<MatchAdjacent>& ma,
         const auto& match = adj.match;
         const auto match_size = match.size();
 
-        for (i32 i = 0; i < match_size; ++i) {
-            const auto src_pt = feat_pts[src_idx].at(match.at(i).queryIdx)->position.pt;
-            const auto dst_pt = feat_pts[dst_idx].at(match.at(i).trainIdx)->position.pt;
+        for (auto i = 0; i < match_size; ++i) {
+            const auto pt_src_idx = match.at(i).queryIdx; 
+            const auto pt_dst_idx = match.at(i).trainIdx;
 
-            const auto pt_camera = project_px_point(camera, src_pt, dst_pt);
-            Vec3 pt_world = Vec3::Zero();
-            const bool result = triangulation(frames.at(src_idx)->pose(), frames.at(dst_idx)->pose(),
-                                              pt_camera, 1.5e-1, pt_world);
-            if (result && pt_world.z() > 0) {
-                const auto pt_idx = match.at(i).trainIdx;
-                auto feat_pt = feat_pts[dst_idx].at(pt_idx);
-                feat_pt->frame = frames[dst_idx];
-                Landmark::Ptr landmark = make_landmark(feat_pt, pt_world);
-                const auto key = gen_combined_key(dst_idx, match.at(i).trainIdx);
-                if (!feat_pt->outlier()) {
-                    landmarks_graph.insert({key, landmark});
+            const auto src_pt = feat_pts[src_idx].at(pt_src_idx)->position.pt;
+            const auto dst_pt = feat_pts[dst_idx].at(pt_dst_idx)->position.pt;
+
+            const auto key1 = gen_combined_key(src_idx, pt_src_idx); 
+            const auto key2 = gen_combined_key(dst_idx, pt_dst_idx); 
+
+            auto visitView1 = landmarks_graph.find(key1);
+            auto visitView2 = landmarks_graph.find(key2);
+
+            if (visitView1 != landmarks_graph.end() && visitView2 != landmarks_graph.end()) {
+                
+                // remove previous view points
+                if (visitView1->second->landmark_idx() != visitView2->second->landmark_idx()) {
+                    landmarks_graph.erase(visitView1);
+                    landmarks_graph.erase(visitView2);
                 }
+                continue;
+            }
+            
+            auto feat_pt = feat_pts[dst_idx].at(pt_dst_idx);
+            feat_pt->frame = frames[dst_idx];
+            Vec3 pt_world = Vec3::Zero();
+            const auto pt_camera = project_px_point(camera, src_pt, dst_pt);
+            const bool result = triangulation(frames.at(src_idx)->pose(), frames.at(dst_idx)->pose(),
+                                              pt_camera, 1.5e-2, pt_world);
+            const bool is_valid = result && !feat_pt->outlier();
+            ui32 visibility_idx = 0;
+            if (visitView1 != landmarks_graph.end())
+                visibility_idx = visitView1->second->landmark_idx();
+            else if (visitView2 != landmarks_graph.end())
+                visibility_idx = visitView2->second->landmark_idx();
+            else {
+                visibility_idx = landmarks.size();
+                if (is_valid) {
+                    Landmark::Ptr landmark = make_landmark(feat_pt, pt_world);
+                    landmarks.emplace_back(landmark);
+                }
+            }
+            
+            if (is_valid) {
+                if (visitView1 == landmarks_graph.end())
+                    landmarks_graph[key1] = std::make_shared<VisibilityNode>(src_idx, pt_src_idx, visibility_idx);
+                if (visitView2 == landmarks_graph.end())
+                    landmarks_graph[key2] = std::make_shared<VisibilityNode>(dst_idx, pt_dst_idx, visibility_idx);
             }
         }    
     }
@@ -163,16 +192,15 @@ void Sfm::estimation_motion(const std::vector<MatchAdjacent>& matching,
     
     me_ransac->estimate_motion(frames, matching, feat_pts, camera);
 
-    this->landmarks = build_landmarks_graph(matching, feat_pts);
+    vis_graph = build_landmarks_graph(matching, feat_pts);
 
     MotionEstimationOptimization::Ptr me_optim = std::make_shared<MotionEstimationOptimization>();
 
-    me_optim->estimate_motion(landmarks, frames, camera);
+    me_optim->estimate_motion(landmarks, frames, vis_graph, feat_pts, camera);
 
     
     for (auto lm_it = landmarks.begin(); lm_it != landmarks.end(); ) {
-        auto landmark = lm_it->second;
-        if (landmark->pose().z() < 0)
+        if ((*lm_it)->pose().z() < 0)
             lm_it = landmarks.erase(lm_it);
         else 
             ++lm_it;

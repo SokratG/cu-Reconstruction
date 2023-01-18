@@ -1,5 +1,8 @@
 #include "multi_view_scene.hpp"
 
+#include <glog/logging.h>
+
+
 namespace curec {
 
 

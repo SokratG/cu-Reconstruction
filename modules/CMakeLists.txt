@@ -83,6 +83,7 @@ target_link_libraries(curec_lib ${CERES_LIBRARIES})
 target_link_libraries(curec_lib ${CUDA_LIBRARIES})
 target_link_libraries(curec_lib ${OpenCV_LIBRARIES})
 target_link_libraries(curec_lib ${GLOG_LIBRARIES})
+target_link_libraries(curec_lib stdc++fs)
 
 
 target_compile_options(curec_lib PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:${CMAKE_NVCC_FLAGS}>)

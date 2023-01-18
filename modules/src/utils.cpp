@@ -4,6 +4,8 @@
 #include <ceres/rotation.h>
 #include <fstream>
 
+#include <filesystem>
+
 
 namespace curec {
 
@@ -106,6 +108,32 @@ void write_ply_file(const std::string_view filename, const std::vector<SE3>& pos
         of << pts[i].x() << " " << pts[i].y() << " " << pts[i].z() << " ";
         of << color[i].x() << " " << color[i].y() << " " << color[i].z() << "\n";
     }
+}
+
+
+std::set<std::string> files_directory(const std::string& data_path, const std::set<std::string>& extensions) {
+    std::set<std::string> files;
+    const std::filesystem::path dir{data_path};
+    for (const auto& entry : std::filesystem::directory_iterator(dir, 
+         std::filesystem::directory_options::skip_permission_denied)) {
+
+        const std::string ext = entry.path().extension();
+        auto find_res = extensions.find(ext);
+        if (find_res == extensions.end())
+            continue;
+        
+        const std::filesystem::file_status ft(status(entry));
+        const auto type = ft.type();
+        if (type == std::filesystem::file_type::directory ||
+            type == std::filesystem::file_type::fifo || 
+            type == std::filesystem::file_type::socket ||
+            type == std::filesystem::file_type::unknown) {
+			continue;
+        } else {
+            files.insert(canonical(entry.path()).string());
+        }
+    }
+    return files;
 }
 
 };

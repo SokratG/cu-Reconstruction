@@ -21,14 +21,18 @@ Optimizer::Ptr BundleAdjustment::get_optimizer(const OptimizerType opt_type,
 }
 
 
-void BundleAdjustment::build_problem(const VisibilityGraph& landmarks,
+void BundleAdjustment::build_problem(const VisibilityGraph& vis_graph,
+                                     const std::vector<Landmark::Ptr>& landmarks,
                                      const std::vector<KeyFrame::Ptr>& frames,
+                                     const std::vector<std::vector<Feature::Ptr>>& feat_pts,
                                      const Camera::Ptr camera) {
-    optimizer->build_blocks(landmarks, frames, camera);
+    optimizer->build_blocks(vis_graph, landmarks, frames, feat_pts, camera);
 }
 
 
-void BundleAdjustment::solve(VisibilityGraph& landmarks, std::vector<KeyFrame::Ptr>& frames, const BAParam& ba_param) {
+void BundleAdjustment::solve(std::vector<Landmark::Ptr>& landmarks, 
+                             std::vector<KeyFrame::Ptr>& frames,
+                             const BAParam& ba_param) {
     optimizer->optimize(ba_param.num_iteration, ba_param.num_thread, ba_param.report);
     optimizer->store_result(landmarks, frames);
 }

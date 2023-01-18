@@ -7,6 +7,7 @@
 #include <ceres/rotation.h>
 #include <unordered_map>
 
+
 namespace curec {
 
 struct CeresCameraModel {
@@ -15,7 +16,7 @@ struct CeresCameraModel {
 
     Mat3 K() const;
     SE3 pose() const;
-    r64 raw_camera_param[9];
+    r64 raw_camera_param[8];
     Vec2 camera_center;
 };
 
@@ -27,15 +28,15 @@ struct CeresObservation {
     r64 obs[3];
 };
 
-class ReprojectionErrorRt
+class ReprojectionErrorPose
 {
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
-    using Ptr = std::shared_ptr<ReprojectionErrorRt>;
+    using Ptr = std::shared_ptr<ReprojectionErrorPose>;
 
 
-    ReprojectionErrorRt(const Mat3& camera_matrix, const Vec2& observation_point) : 
-                        observation(observation_point), K(camera_matrix) {
+    ReprojectionErrorPose(const Mat3& camera_matrix, const Vec2& observation_point) : 
+                          observation(observation_point), K(camera_matrix) {
 
     }
 
@@ -54,24 +55,24 @@ public:
         P[1] += camera[5];
         P[2] += camera[6];
 
-        const T fx = static_cast<T>(K(0, 0));
-        const T fy = static_cast<T>(K(1, 1));
-        const T cx = static_cast<T>(K(0, 2));
-        const T cy = static_cast<T>(K(1, 2));
+        const r64 fx = K(0, 0);
+        const r64 fy = K(1, 1);
+        const r64 cx = K(0, 2);
+        const r64 cy = K(1, 2);
 
         // project to camera image: p = K * P'
         T prediction[2];
         prediction[0] = fx * P[0] / P[2] + cx;
-        prediction[1] = fy * P[0] / P[2] + cy;
+        prediction[1] = fy * P[1] / P[2] + cy;
 
-        residual[0] = prediction[0] - T(observation.x());
-        residual[1] = prediction[1] - T(observation.y());
+        residual[0] = static_cast<T>(observation.x()) - prediction[0];
+        residual[1] = static_cast<T>(observation.y()) - prediction[1];
         return true;
     }
 
     static ceres::CostFunction* create(const Mat3& camera_matrix, const Vec2& observation_point) {
-        return (new ceres::AutoDiffCostFunction<ReprojectionErrorRt, 2, 7, 3>(
-            new ReprojectionErrorRt(camera_matrix, observation_point)
+        return (new ceres::AutoDiffCostFunction<ReprojectionErrorPose, 2, 7, 3>(
+            new ReprojectionErrorPose(camera_matrix, observation_point)
         ));
     }
 
@@ -113,11 +114,11 @@ public:
 
         // project to camera image: p = K * P'
         T prediction[2];
-        prediction[0] = f * P[0] / (P[2] + 1e-7) + center.x();
-        prediction[1] = f * P[0] / (P[2] + 1e-7) + center.y();
+        prediction[0] = f * P[0] / P[2] + center.x();
+        prediction[1] = f * P[1] / P[2] + center.y();
 
-        residual[0] = prediction[0] - T(observation.x());
-        residual[1] = prediction[1] - T(observation.y());
+        residual[0] = T(observation.x()) - prediction[0];
+        residual[1] = T(observation.y()) - prediction[1];
         return true;
     }
 
@@ -139,11 +140,14 @@ public:
     using Ptr = std::shared_ptr<CeresOptimizer>;
 
     CeresOptimizer(const TypeReprojectionError tre, const r64 loss_width = 1.0);
-    virtual void build_blocks(const VisibilityGraph& landmarks,
+    virtual void build_blocks(const VisibilityGraph& vis_graph,
+                              const std::vector<Landmark::Ptr>& landmarks, 
                               const std::vector<KeyFrame::Ptr>& frames,
+                              const std::vector<std::vector<Feature::Ptr>>& feat_pts,
                               const Camera::Ptr camera) override;
     virtual void optimize(const i32 n_iteration, const i32 num_threads, const bool fullreport) override;
-    virtual void store_result(VisibilityGraph& landmarks, std::vector<KeyFrame::Ptr>& frames) override;
+    virtual void store_result(std::vector<Landmark::Ptr>& landmarks, 
+                              std::vector<KeyFrame::Ptr>& frames) override;
     void reset();
 protected:
     void add_block(CeresCameraModel& ceres_camera, CeresObservation& landmark, 
@@ -152,8 +156,8 @@ protected:
 
 private:
     std::shared_ptr<ceres::Problem> optim_problem;
-    std::unordered_map<uuid, CeresCameraModel> ceres_cameras;
-    std::unordered_map<uuid, CeresObservation> ceres_obseravations;
+    std::unordered_map<ui64, CeresCameraModel> ceres_cameras;
+    std::unordered_map<ui64, CeresObservation> ceres_obseravations;
     r64 loss_width;
     TypeReprojectionError type_err;
 };
