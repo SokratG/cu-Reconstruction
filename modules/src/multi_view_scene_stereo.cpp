@@ -1,4 +1,4 @@
-#include "multi_view_scene.hpp"
+#include "multi_view_scene_stereo.hpp"
 
 #include <glog/logging.h>
 

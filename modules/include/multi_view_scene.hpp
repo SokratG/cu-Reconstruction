@@ -3,6 +3,8 @@
 
 #include "camera.hpp"
 #include "keyframe.hpp"
+#include "feature_detector.hpp"
+#include "feature_matcher.hpp"
 #include <opencv2/core/cuda.hpp>
 
 namespace curec {
@@ -10,10 +12,17 @@ namespace curec {
 
 class MultiViewScene {
 public:
-    MultiViewScene(const Camera::Ptr camera);
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+    using Ptr = std::shared_ptr<MultiViewScene>;
+public:
+    MultiViewScene(const Camera::Ptr _camera);
 
     virtual void reconstruct_scene() = 0;
-    
+
+protected:
+    void detect_feature(const std::vector<KeyFrame::Ptr>& frames,
+                        std::vector<std::vector<Feature::Ptr>>& feat_pts, 
+                        std::vector<MatchAdjacent>& matching);
     // MOTION ESTIMATION
     // OPTIONAL: ESTIMATE DEPTH
     // POINT CLOUD FROM DEPTH
@@ -22,36 +31,6 @@ public:
 protected:
     Camera::Ptr camera;
 };
-
-
-class MultiViewSceneRGBD : public MultiViewScene {
-public:
-    MultiViewSceneRGBD(const Camera::Ptr camera);
-    bool add_frame(const cv::cuda::GpuMat rgb, const cv::cuda::GpuMat depth);
-    void reconstruct_scene() override;
-private:
-    std::vector<KeyFrame::Ptr> rgb_frames;
-    std::vector<KeyFrame::Ptr> depth_frames;
-};
-
-
-class MultiViewSceneMono : public MultiViewScene {
-public:
-    MultiViewSceneMono(const Camera::Ptr camera);
-    bool add_frame(const cv::cuda::GpuMat rgb);
-    void reconstruct_scene() override;
-
-};
-
-
-
-class MultiViewSceneStereo : public MultiViewScene {
-public:
-    MultiViewSceneStereo(const Camera::Ptr camera);
-    bool add_frame(const cv::cuda::GpuMat left, const cv::cuda::GpuMat right);
-    void reconstruct_scene() override;
-};
-
 
 };
 

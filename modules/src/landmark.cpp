@@ -1,4 +1,5 @@
 #include "landmark.hpp"
+#include "keyframe.hpp"
 #include "utils.hpp"
 
 
@@ -49,6 +50,15 @@ Landmark::Ptr Landmark::create_landmark() {
     const uuid id = UUID::gen();
     Landmark::Ptr landmark = std::shared_ptr<Landmark>(new Landmark);
     landmark->id = id;
+    return landmark;
+}
+
+
+Landmark::Ptr make_landmark(const Feature::Ptr feat_pt, const Vec3& position_world) {
+    const auto pt2 = feat_pt->position.pt;
+    const Vec3f color = feat_pt->frame.lock()->get_color(pt2);
+    Landmark::Ptr landmark = Landmark::create_landmark(position_world, color);
+    landmark->observation(feat_pt);
     return landmark;
 }
 

@@ -111,7 +111,6 @@ std::vector<MatchAdjacent> feature_matching(const std::vector<cv::cuda::GpuMat>&
                     feat_pts[i].at(match.at(k).queryIdx)->outlier(true);
                     feat_pts[j].at(match.at(k).trainIdx)->outlier(true);
                 }
-                    
             }
 
             if (inliers_size < mcfg.min_inlier) {

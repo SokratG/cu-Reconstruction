@@ -1,10 +1,6 @@
 #ifndef CUREC_LIB_SFM_HPP
 #define CUREC_LIB_SFM_HPP
 
-#include "keyframe.hpp"
-#include "feature.hpp"
-#include "camera.hpp"
-#include "landmark.hpp"
 #include "visibility_graph.hpp"
 #include <string_view>
 #include <vector>
@@ -32,9 +28,6 @@ private:
 
     void estimation_motion(const std::vector<MatchAdjacent>& matching,
                            std::vector<std::vector<Feature::Ptr>>& feat_pts);
-
-    VisibilityGraph build_landmarks_graph(const std::vector<MatchAdjacent>& ma,
-                                          std::vector<std::vector<Feature::Ptr>>& feat_pts);
 private:
     std::vector<KeyFrame::Ptr> frames;
     VisibilityGraph vis_graph;

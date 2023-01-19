@@ -3,10 +3,13 @@
 #include <glog/logging.h>
 #include "camera.hpp"
 #include "rgbd_dataset.hpp"
+#include "rgb_dataset.hpp"
 #include "sfm.hpp"
 
 
-DEFINE_string(dir_path, "./data/dataset/rgbd/scene01", "dataset file path");
+// DEFINE_string(dir_path, "./data/dataset/rgbd/scene01", "dataset file path");
+
+DEFINE_string(dir_path, "./data/dataset/monocular/figure", "dataset file path");
 
 int main(int argc, char* argv[]) {
     google::ParseCommandLineFlags(&argc, &argv, true);
@@ -18,10 +21,12 @@ int main(int argc, char* argv[]) {
     // curec::Camera kinect_depth = std::make_shared<curec::Camera>(391.54, 391.54, 265.94, 218.74);
     curec::Camera::Ptr kinect_rgb = std::make_shared<curec::Camera>(527.01, 527.01, 320.0,  240.0);
 
-    curec::RGBDDataset rgbd_dataset(FLAGS_dir_path);
+    // curec::RGBDDataset rgbd_dataset(FLAGS_dir_path);
+    curec::RGBDataset rgb_dataset(FLAGS_dir_path);
     curec::Sfm sfm(kinect_rgb);
-    for (auto i = 0; i < 7; ++i) {
-        auto [rgb, depth] = rgbd_dataset.get_next();
+    for (auto i = 0; i < rgb_dataset.num_files(); ++i) {
+        // auto [rgb, depth] = rgbd_dataset.get_next();
+        auto rgb = rgb_dataset.get_next();
         sfm.add_frame(rgb);
     }
 

@@ -9,10 +9,12 @@ namespace curec {
 
 class RGBDDataset : public ImageDataset<RGBD> {
 public:
-    RGBDDataset(const std::string& data_path);
+    RGBDDataset(const std::string& data_path, const r64 depth_scale);
 
     virtual RGBD get_next() override;
     virtual i32 num_files() const override;
+private:
+    r64 depth_scale;
 };
 
 }

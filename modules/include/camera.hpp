@@ -2,6 +2,7 @@
 #define CUREC_LIB_CAMERA_HPP
 
 #include "types.hpp"
+#include <opencv2/core/core.hpp>
 #include <memory>
 
 namespace curec {
@@ -58,6 +59,9 @@ private:
     SE3 camera_pose;
     SE3 camera_pose_inv;
 };
+
+
+std::pair<Vec3, Vec3> project_px_point(const Camera::Ptr camera, const cv::Point2d src, const cv::Point2d dst);
 
 };
 

@@ -9,7 +9,9 @@
 
 namespace curec {
 
-RGBDDataset::RGBDDataset(const std::string& data_path) : ImageDataset(data_path) {
+RGBDDataset::RGBDDataset(const std::string& data_path, const r64 _depth_scale) : 
+                         ImageDataset(data_path), depth_scale(_depth_scale)
+{
 
 }
 
@@ -24,8 +26,9 @@ RGBD RGBDDataset::get_next() {
 
     cv::cuda::cvtColor(gpu_bgr, gpu_rgb, cv::COLOR_BGR2RGB);
     std::advance(current_file, 1);
-    cv::Mat cpu_depth = cv::imread(*current_file, cv::IMREAD_UNCHANGED); // cv::IMREAD_ANYDEPTH
+    cv::Mat cpu_depth = cv::imread(*current_file, cv::IMREAD_ANYDEPTH); // cv::IMREAD_ANYDEPTH
     cv::cuda::GpuMat gpu_depth(cpu_depth);
+    gpu_depth.convertTo(gpu_depth, CV_32F, depth_scale);
     std::advance(current_file, 1);
     return {gpu_rgb, gpu_depth};
 }

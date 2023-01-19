@@ -2,6 +2,10 @@
 #define CUREC_LIB_VISIBILITY_GRAPH_HPP
 
 #include "types.hpp"
+#include "landmark.hpp"
+#include "keyframe.hpp"
+#include "camera.hpp"
+#include "feature_matcher.hpp"
 
 namespace curec {
 
@@ -38,6 +42,22 @@ private:
 
 
 using VisibilityGraph = std::unordered_map<ui64, VisibilityNode::Ptr>;
+
+
+void build_landmarks_graph_triangluation(const std::vector<MatchAdjacent>& matching,
+                                         const std::vector<KeyFrame::Ptr>& frames,
+                                         const std::vector<std::vector<Feature::Ptr>>& feat_pts,
+                                         const Camera::Ptr camera,
+                                         VisibilityGraph& vis_graph,
+                                         std::vector<Landmark::Ptr>& landmarks);
+
+void build_landmarks_graph_depth(const std::vector<MatchAdjacent>& matching,
+                                 const std::vector<KeyFrame::Ptr>& frames,
+                                 const std::vector<cv::Mat>& depth,
+                                 const std::vector<std::vector<Feature::Ptr>>& feat_pts,
+                                 const Camera::Ptr camera,
+                                 VisibilityGraph& vis_graph,
+                                 std::vector<Landmark::Ptr>& landmarks);
 
 };
 

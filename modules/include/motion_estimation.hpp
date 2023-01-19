@@ -42,6 +42,13 @@ public:
 };
 
 
+bool triangulation(const SE3& src_pose,
+                   const SE3& dst_pose,
+                   const std::pair<Vec3, Vec3>& points,
+                   const r64 confidence_thrshold,
+                   Vec3 &pt_world);
+
+
 };
 
 

@@ -52,9 +52,9 @@ bool MotionEstimationRansac::estimate_motion(std::vector<KeyFrame::Ptr>& frames,
         Mat3 R; Vec3 t;
         estimate_ransac(src, dst, K, R, t);
         frames[dst_idx]->pose(R, t);
-        const auto current_pose = frames[dst_idx]->pose();
-        frames[dst_idx]->pose(relative_motion * current_pose);
-        relative_motion = frames[dst_idx]->pose() * frames[src_idx]->pose().inverse();
+        const auto src2dst_pose = frames[dst_idx]->pose();
+        frames[dst_idx]->pose(relative_motion * src2dst_pose);
+        relative_motion = frames[dst_idx]->pose() * frames[src_idx]->pose();
     }
     return true;
 }
@@ -79,5 +79,31 @@ bool MotionEstimationOptimization::estimate_motion(std::vector<Landmark::Ptr>& l
 
     return true;
 }
+
+
+bool triangulation(const SE3& src_pose,
+                   const SE3& dst_pose,
+                   const std::pair<Vec3, Vec3>& points,
+                   const r64 confidence_thrshold,
+                   Vec3 &pt_world) {
+    MatXX A(4, 4);
+    VecX b(4);
+    b.setZero();
+    Mat34 m = src_pose.matrix3x4();
+    A.block<1, 4>(0, 0) = points.first[0] * m.row(2) - m.row(0);
+    A.block<1, 4>(1, 0) = points.first[1] * m.row(2) - m.row(1); 
+    m = dst_pose.matrix3x4();
+    A.block<1, 4>(2, 0) = points.second[0] * m.row(2) - m.row(0);
+    A.block<1, 4>(3, 0) = points.second[1] * m.row(2) - m.row(1);
+
+    auto svd = A.bdcSvd(Eigen::ComputeThinU | Eigen::ComputeThinV);
+    pt_world = (svd.matrixV().col(3) / svd.matrixV()(3, 3)).head<3>();
+
+    if (svd.singularValues()[3] / svd.singularValues()[2] < confidence_thrshold) {
+        return true;
+    }
+    return false;
+}
+
 
 };

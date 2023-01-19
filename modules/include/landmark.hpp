@@ -39,6 +39,7 @@ private:
     std::shared_ptr<Feature> observation_pt;
 };
 
+Landmark::Ptr make_landmark(const Feature::Ptr feat_pt, const Vec3& position_world);
 
 };
 

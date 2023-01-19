@@ -93,4 +93,21 @@ Vec2 Camera::world2pixel(const Vec3& pt_world, const SE3& T_C_W) const {
     return camera2pixel(world2camera(pt_world, T_C_W));
 }
 
+
+
+std::pair<Vec3, Vec3> project_px_point(const Camera::Ptr camera, const cv::Point2d src, const cv::Point2d dst) {
+    std::pair<Vec3, Vec3> pt_camera {
+        camera->pixel2camera(
+            Vec2(src.x,
+                 src.y)
+        ),
+        camera->pixel2camera(
+            Vec2(dst.x,
+                 dst.y)
+        ),
+    };
+    return pt_camera;
+}
+
+
 };
