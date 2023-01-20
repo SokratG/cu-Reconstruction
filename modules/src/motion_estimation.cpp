@@ -34,7 +34,6 @@ bool MotionEstimationRansac::estimate_motion(std::vector<KeyFrame::Ptr>& frames,
     }
     cv::Mat K;
     cv::eigen2cv(camera->K(), K);
-    SE3 relative_motion = frames.at(ma.front().src_idx)->pose();
 
     for (const auto& adj : ma) {
         const i32 src_idx = adj.src_idx;
@@ -53,8 +52,7 @@ bool MotionEstimationRansac::estimate_motion(std::vector<KeyFrame::Ptr>& frames,
         estimate_ransac(src, dst, K, R, t);
         frames[dst_idx]->pose(R, t);
         const auto src2dst_pose = frames[dst_idx]->pose();
-        frames[dst_idx]->pose(relative_motion * src2dst_pose);
-        relative_motion = frames[dst_idx]->pose() * frames[src_idx]->pose();
+        frames[dst_idx]->pose(frames[src_idx]->pose() * src2dst_pose);
     }
     return true;
 }
