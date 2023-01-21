@@ -1,12 +1,12 @@
-#ifndef CUREC_LIB_POINT_CLOUD_HPP
-#define CUREC_LIB_POINT_CLOUD_HPP
+#ifndef CUPHOTO_LIB_POINT_CLOUD_HPP
+#define CUPHOTO_LIB_POINT_CLOUD_HPP
 
 #include "types.hpp"
 // #include <pcl/point_cloud.h>
 // #include <pcl/point_types.h>
 #include <string>
 
-namespace curec {
+namespace cuphoto {
 
 
 // PCL

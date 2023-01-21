@@ -1,5 +1,5 @@
 #include "rgbd_dataset.hpp"
-#include "cr_exception.hpp"
+#include "cp_exception.hpp"
 #include "utils.hpp"
 
 #include <opencv2/opencv.hpp>
@@ -7,7 +7,7 @@
 
 #include <glog/logging.h>
 
-namespace curec {
+namespace cuphoto {
 
 RGBDDataset::RGBDDataset(const std::string& data_path, const r64 _depth_scale) : 
                          ImageDataset(data_path), depth_scale(_depth_scale)

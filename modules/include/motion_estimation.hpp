@@ -1,5 +1,5 @@
-#ifndef CUREC_LIB_ME_HPP
-#define CUREC_LIB_ME_HPP
+#ifndef CUPHOTO_LIB_ME_HPP
+#define CUPHOTO_LIB_ME_HPP
 
 #include "types.hpp"
 #include "keyframe.hpp"
@@ -8,7 +8,7 @@
 #include "visibility_graph.hpp"
 #include <memory>
 
-namespace curec {
+namespace cuphoto {
 
 struct MatchAdjacent;
 

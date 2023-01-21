@@ -1,14 +1,14 @@
-#ifndef CUREC_LIB_IMAGE_DATASET_HPP
-#define CUREC_LIB_IMAGE_DATASET_HPP
+#ifndef CUPHOTO_LIB_IMAGE_DATASET_HPP
+#define CUPHOTO_LIB_IMAGE_DATASET_HPP
 
 #include "types.hpp"
 #include "utils.hpp"
-#include "cr_exception.hpp"
+#include "cp_exception.hpp"
 #include <string>
 #include <set>
 #include <opencv4/opencv2/core.hpp>
 
-namespace curec {
+namespace cuphoto {
 
 template<typename T>
 class ImageDataset {
@@ -34,7 +34,7 @@ public:
 
     virtual void reset() {
         if (files.empty())
-            throw CuRecException("The given directory is empty or not contain images!");
+            throw CuPhotoException("The given directory is empty or not contain images!");
         current_file = files.begin();
     }
 protected:

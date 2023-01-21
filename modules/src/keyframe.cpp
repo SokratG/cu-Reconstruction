@@ -2,7 +2,7 @@
 #include "utils.hpp"
 
 
-namespace curec {
+namespace cuphoto {
 
 KeyFrame::KeyFrame() {
 

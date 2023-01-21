@@ -1,5 +1,5 @@
-#ifndef CUREC_LIB_SFM_HPP
-#define CUREC_LIB_SFM_HPP
+#ifndef CUPHOTO_LIB_SFM_HPP
+#define CUPHOTO_LIB_SFM_HPP
 
 #include "visibility_graph.hpp"
 #include <string_view>
@@ -9,7 +9,7 @@
 #include <opencv2/core/core.hpp>
 
 
-namespace curec {
+namespace cuphoto {
 
 
 struct MatchAdjacent;

@@ -1,5 +1,5 @@
-#ifndef CUREC_LIB_VISIBILITY_GRAPH_HPP
-#define CUREC_LIB_VISIBILITY_GRAPH_HPP
+#ifndef CUPHOTO_LIB_VISIBILITY_GRAPH_HPP
+#define CUPHOTO_LIB_VISIBILITY_GRAPH_HPP
 
 #include "types.hpp"
 #include "landmark.hpp"
@@ -7,7 +7,7 @@
 #include "camera.hpp"
 #include "feature_matcher.hpp"
 
-namespace curec {
+namespace cuphoto {
 
 class VisibilityNode
 {

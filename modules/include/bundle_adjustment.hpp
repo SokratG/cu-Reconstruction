@@ -1,11 +1,11 @@
-#ifndef CUREC_LIB_BUNDLE_ADJUSTMENT_HPP
-#define CUREC_LIB_BUNDLE_ADJUSTMENT_HPP
+#ifndef CUPHOTO_LIB_BUNDLE_ADJUSTMENT_HPP
+#define CUPHOTO_LIB_BUNDLE_ADJUSTMENT_HPP
 
 #include "optimizer.hpp"
 #include <memory>
 #include <vector>
 
-namespace curec {
+namespace cuphoto {
 
 enum class OptimizerType {
     BA_CERES = 0,

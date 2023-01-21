@@ -5,7 +5,7 @@
 #include "types_dataset.hpp"
 
 
-namespace curec {
+namespace cuphoto {
 
 class RGBDDataset : public ImageDataset<RGBD> {
 public:

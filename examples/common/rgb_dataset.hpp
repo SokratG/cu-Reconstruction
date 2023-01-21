@@ -4,7 +4,7 @@
 #include "image_dataset.hpp"
 #include "types_dataset.hpp"
 
-namespace curec {
+namespace cuphoto {
 
 
 class RGBDataset : public ImageDataset<RGB> {

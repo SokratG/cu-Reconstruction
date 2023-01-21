@@ -1,11 +1,11 @@
-#ifndef CUREC_LIB_CUDA_SIFT_WRAPPER_HPP
-#define CUREC_LIB_CUDA_SIFT_WRAPPER_HPP
+#ifndef CUPHOTO_LIB_CUDA_SIFT_WRAPPER_HPP
+#define CUPHOTO_LIB_CUDA_SIFT_WRAPPER_HPP
 
 #include "types.hpp"
 #include "CudaSift/cudaSift.h"
 #include <opencv2/features2d/features2d.hpp>
 
-namespace curec {
+namespace cuphoto {
 
 struct SiftParams {
     i32 maxKeypoints = 1500;

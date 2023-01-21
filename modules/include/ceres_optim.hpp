@@ -1,5 +1,5 @@
-#ifndef CUREC_LIB_CERES_OPTIM_HPP
-#define CUREC_LIB_CERES_OPTIM_HPP
+#ifndef CUPHOTO_LIB_CERES_OPTIM_HPP
+#define CUPHOTO_LIB_CERES_OPTIM_HPP
 
 #include "optimizer.hpp"
 #include "utils.hpp"
@@ -8,7 +8,7 @@
 #include <unordered_map>
 
 
-namespace curec {
+namespace cuphoto {
 
 struct CeresCameraModel {
     CeresCameraModel() = delete;

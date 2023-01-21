@@ -1,8 +1,8 @@
-#ifndef CUREC_LIB_MESH_HPP
-#define CUREC_LIB_MESH_HPP
+#ifndef CUPHOTO_LIB_MESH_HPP
+#define CUPHOTO_LIB_MESH_HPP
 
 
-namespace curec {
+namespace cuphoto {
 
 };
 

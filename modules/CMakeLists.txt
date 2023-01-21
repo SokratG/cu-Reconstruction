@@ -57,33 +57,33 @@ include_directories(${GLOG_INCLUDE_DIRS})
 
 add_definitions(-D_USE_MATH_DEFINES)
 
-file(GLOB SRC_CUREC_LIB "src/*.cpp" "src/cuda/*.cu")
+file(GLOB SRC_CUPHOTO_LIB "src/*.cpp" "src/cuda/*.cu")
 
-file(GLOB HEADER_CUREC "${PROJECT_SOURCE_DIR}/modules/include/*.h*" 
+file(GLOB HEADER_CUPH "${PROJECT_SOURCE_DIR}/modules/include/*.h*" 
                        "${PROJECT_SOURCE_DIR}/modules/include/cuda/*.cuh")
 
-add_library(curec_lib SHARED ${SRC_CUREC_LIB})
+add_library(cuphoto_lib SHARED ${SRC_CUPHOTO_LIB})
 
-set_target_properties(curec_lib PROPERTIES
-                PUBLIC_HEADER "${HEADER_CUREC}"
-                OUTPUT_NAME "curec_lib" 
+set_target_properties(cuphoto_lib PROPERTIES
+                PUBLIC_HEADER "${HEADER_CUPHOTO}"
+                OUTPUT_NAME "cuphoto_lib" 
 		        CUDA_SEPARABLE_COMPILATION ON)
 
-install(TARGETS curec_lib
+install(TARGETS cuphoto_lib
         LIBRARY DESTINATION ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
         PUBLIC_HEADER DESTINATION ${CMAKE_INCLUDE_OUTPUT_DIRECTORY})
 
-set_property(TARGET curec_lib PROPERTY CUDA_STANDARD 14)
+set_property(TARGET cuphoto_lib PROPERTY CUDA_STANDARD 14)
 
 
-target_link_libraries(curec_lib rt)
-target_link_libraries(curec_lib cudaSift)
-target_link_libraries(curec_lib Sophus::Sophus)
-target_link_libraries(curec_lib ${CERES_LIBRARIES})
-target_link_libraries(curec_lib ${CUDA_LIBRARIES})
-target_link_libraries(curec_lib ${OpenCV_LIBRARIES})
-target_link_libraries(curec_lib ${GLOG_LIBRARIES})
-target_link_libraries(curec_lib stdc++fs)
+target_link_libraries(cuphoto_lib rt)
+target_link_libraries(cuphoto_lib cudaSift)
+target_link_libraries(cuphoto_lib Sophus::Sophus)
+target_link_libraries(cuphoto_lib ${CERES_LIBRARIES})
+target_link_libraries(cuphoto_lib ${CUDA_LIBRARIES})
+target_link_libraries(cuphoto_lib ${OpenCV_LIBRARIES})
+target_link_libraries(cuphoto_lib ${GLOG_LIBRARIES})
+target_link_libraries(cuphoto_lib stdc++fs)
 
 
-target_compile_options(curec_lib PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:${CMAKE_NVCC_FLAGS}>)
+target_compile_options(cuphoto_lib PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:${CMAKE_NVCC_FLAGS}>)

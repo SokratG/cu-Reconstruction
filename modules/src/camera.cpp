@@ -1,6 +1,6 @@
 #include "camera.hpp"
 
-namespace curec {
+namespace cuphoto {
 
 Distortion::Distortion(const r64 _k1, const r64 _k2, const r64 _p1, const r64 _p2, const r64 _k3) :
                        k1(_k1), k2(_k2), p1(_p1), p2(_p2), k3(_k3), alpha(1.0) {

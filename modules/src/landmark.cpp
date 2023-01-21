@@ -3,7 +3,7 @@
 #include "utils.hpp"
 
 
-namespace curec {
+namespace cuphoto {
 
 Landmark::Landmark(const uuid& _id, const Vec3& _position, const Vec3f& _color) : 
                   id(_id), position(_position), landmark_color(_color) {

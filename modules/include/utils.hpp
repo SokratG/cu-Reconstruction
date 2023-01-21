@@ -1,5 +1,5 @@
-#ifndef CUREC_LIB_UTILS_HPP
-#define CUREC_LIB_UTILS_HPP
+#ifndef CUPHOTO_LIB_UTILS_HPP
+#define CUPHOTO_LIB_UTILS_HPP
 
 #include "types.hpp"
 #include <unistd.h>
@@ -17,7 +17,7 @@
 
 #include <glog/logging.h>
 
-namespace curec {
+namespace cuphoto {
 
 class TimeProfile
 {

@@ -4,7 +4,7 @@
 #include <opencv2/core/cuda.hpp>
 #include <tuple>
 
-namespace curec {
+namespace cuphoto {
 
 using RGB = cv::cuda::GpuMat;
 using DEPTH = cv::cuda::GpuMat;

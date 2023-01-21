@@ -1,5 +1,5 @@
-#ifndef CUREC_LIB_KEYFRAME_HPP
-#define CUREC_LIB_KEYFRAME_HPP
+#ifndef CUPHOTO_LIB_KEYFRAME_HPP
+#define CUPHOTO_LIB_KEYFRAME_HPP
 
 #include "types.hpp"
 #include <opencv2/core/cuda.hpp>
@@ -7,7 +7,7 @@
 #include <mutex>
 #include <vector>
 
-namespace curec {
+namespace cuphoto {
 
 class Landmark;
 
@@ -56,4 +56,4 @@ private:
 };
 
 
-#endif // CUREC_KEYFRAME_HPP
+#endif // CUPHOTO_KEYFRAME_HPP

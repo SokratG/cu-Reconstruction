@@ -2,7 +2,7 @@
 
 #include <glog/logging.h>
 
-namespace curec {
+namespace cuphoto {
 
 MultiViewSceneStereo::MultiViewSceneStereo(const Camera::Ptr _camera) : MultiViewScene(_camera) {
 

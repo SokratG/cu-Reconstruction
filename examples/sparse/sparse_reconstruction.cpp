@@ -17,13 +17,13 @@ int main(int argc, char* argv[]) {
 
     // color and depth intrinsic Kinect v2.
     // cv::Mat K_color = (cv::Mat_<r64>(3, 3) << 527.01, 0, 320.0, 0, 527.01, 240.0, 0, 0, 1);
-    // curec::Camera::Ptr kinect_rgb = std::make_shared<curec::Camera>(1058.26, 1058.26, 320.0,  240.0);
-    // curec::Camera kinect_depth = std::make_shared<curec::Camera>(391.54, 391.54, 265.94, 218.74);
-    curec::Camera::Ptr kinect_rgb = std::make_shared<curec::Camera>(527.01, 527.01, 320.0,  240.0);
+    // cuphoto::Camera::Ptr kinect_rgb = std::make_shared<cuphoto::Camera>(1058.26, 1058.26, 320.0,  240.0);
+    // cuphoto::Camera kinect_depth = std::make_shared<cuphoto::Camera>(391.54, 391.54, 265.94, 218.74);
+    cuphoto::Camera::Ptr kinect_rgb = std::make_shared<cuphoto::Camera>(527.01, 527.01, 320.0,  240.0);
 
-    // curec::RGBDDataset rgbd_dataset(FLAGS_dir_path);
-    curec::RGBDataset rgb_dataset(FLAGS_dir_path);
-    curec::Sfm sfm(kinect_rgb);
+    // cuphoto::RGBDDataset rgbd_dataset(FLAGS_dir_path);
+    cuphoto::RGBDataset rgb_dataset(FLAGS_dir_path);
+    cuphoto::Sfm sfm(kinect_rgb);
     for (auto i = 0; i < rgb_dataset.num_files(); ++i) {
         // auto [rgb, depth] = rgbd_dataset.get_next();
         auto rgb = rgb_dataset.get_next();

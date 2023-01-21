@@ -1,5 +1,5 @@
 #include "mesh.hpp"
 
-namespace curec {
+namespace cuphoto {
     
 };

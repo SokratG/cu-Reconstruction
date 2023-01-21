@@ -1,8 +1,8 @@
 #include "bundle_adjustment.hpp"
 #include "ceres_optim.hpp"
-#include "cr_exception.hpp"
+#include "cp_exception.hpp"
 
-namespace curec {
+namespace cuphoto {
 
 BundleAdjustment::BundleAdjustment(const OptimizerType opt_type,
                                    const TypeReprojectionError type_err) {
@@ -16,7 +16,7 @@ Optimizer::Ptr BundleAdjustment::get_optimizer(const OptimizerType opt_type,
         case OptimizerType::BA_CERES:
             return std::make_shared<CeresOptimizer>(type_err);
         default:
-            throw CuRecException("Error: Unknown type of optimization!");
+            throw CuPhotoException("Error: Unknown type of optimization!");
     }
 }
 

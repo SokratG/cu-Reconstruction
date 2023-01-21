@@ -1,11 +1,11 @@
-#ifndef CUREC_LIB_CAMERA_HPP
-#define CUREC_LIB_CAMERA_HPP
+#ifndef CUPHOTO_LIB_CAMERA_HPP
+#define CUPHOTO_LIB_CAMERA_HPP
 
 #include "types.hpp"
 #include <opencv2/core/core.hpp>
 #include <memory>
 
-namespace curec {
+namespace cuphoto {
 
 struct Distortion {
     Distortion() : k1(0), k2(0), p1(0), p2(0), k3(0), alpha(1.0) {}
@@ -65,4 +65,4 @@ std::pair<Vec3, Vec3> project_px_point(const Camera::Ptr camera, const cv::Point
 
 };
 
-#endif // CUREC_CAMERA_HPP
+#endif // CUPHOTO_CAMERA_HPP

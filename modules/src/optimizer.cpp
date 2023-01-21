@@ -1,5 +1,5 @@
 #include "optimizer.hpp"
 
-namespace curec {
+namespace cuphoto {
 
 };

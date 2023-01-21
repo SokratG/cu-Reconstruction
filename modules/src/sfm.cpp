@@ -3,12 +3,12 @@
 #include "feature_matcher.hpp"
 #include "motion_estimation.hpp"
 #include "utils.hpp"
-#include "cr_exception.hpp"
+#include "cp_exception.hpp"
 
 #include <numeric>
 #include <glog/logging.h>
 
-namespace curec {
+namespace cuphoto {
 
 
 Sfm::Sfm(const Camera::Ptr _camera) : camera(_camera) {
@@ -36,7 +36,7 @@ std::vector<KeyFrame::Ptr> Sfm::get_frames() const {
 void Sfm::run_pipeline() {
     // TODO add config struct
     if (frames.empty()) {
-        throw CuRecException("The image data is empty! Can't run SFM pipeline");
+        throw CuPhotoException("The image data is empty! Can't run SFM pipeline");
     }
 
     std::vector<std::vector<Feature::Ptr>> feat_pts;

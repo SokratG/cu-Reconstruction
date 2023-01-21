@@ -1,11 +1,11 @@
 #include "cuda_sift.hpp"
 #include "CudaSift/cudaImage.h"
-#include "cr_exception.hpp"
+#include "cp_exception.hpp"
 #include <opencv2/core/cuda.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
 
-namespace curec {
+namespace cuphoto {
 
 constexpr auto SIFT_DESC_DIM = 128;
 
@@ -38,15 +38,15 @@ cv::String CudaSiftWrapper::getDefaultName() const {
 }
 
 bool CudaSiftWrapper::empty() const {
-    throw CuRecException("Method not implemented!");
+    throw CuPhotoException("Method not implemented!");
 }
 
 void CudaSiftWrapper::read(const cv::FileNode& fn) {
-    throw CuRecException("Method not implemented!");
+    throw CuPhotoException("Method not implemented!");
 }
 
 void CudaSiftWrapper::write(cv::FileStorage& fs) const {
-    throw CuRecException("Method not implemented!");
+    throw CuPhotoException("Method not implemented!");
 }
 
 
@@ -60,7 +60,7 @@ void CudaSiftWrapper::detectAndCompute(cv::InputArray image, cv::InputArray mask
    	cv::cuda::GpuMat refCudaImage = image.getGpuMat();
 	cv::cuda::GpuMat& refCudaDesc = descriptors.getGpuMatRef();
     if(refCudaImage.empty() || refCudaImage.depth() != CV_8U)
-        throw CuRecException("image is empty or has incorrect depth (!=CV_8U)");
+        throw CuPhotoException("image is empty or has incorrect depth (!=CV_8U)");
 
 	cv::Mat tmpImage, cpu_descriptor;
 	refCudaImage.download(tmpImage);

@@ -1,5 +1,5 @@
-#ifndef CUREC_LIB_OPTIMIZER_HPP
-#define CUREC_LIB_OPTIMIZER_HPP
+#ifndef CUPHOTO_LIB_OPTIMIZER_HPP
+#define CUPHOTO_LIB_OPTIMIZER_HPP
 
 
 #include "landmark.hpp"
@@ -8,7 +8,7 @@
 #include "visibility_graph.hpp"
 #include <memory>
 
-namespace curec {
+namespace cuphoto {
 
 enum class TypeReprojectionError {
     REPROJECTION_RT = 0,

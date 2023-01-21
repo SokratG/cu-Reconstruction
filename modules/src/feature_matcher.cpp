@@ -1,12 +1,12 @@
 #include "feature_matcher.hpp"
-#include "cr_exception.hpp"
+#include "cp_exception.hpp"
 #include <opencv2/calib3d/calib3d.hpp>
 #include <opencv2/core/eigen.hpp>
 #include <opencv2/cudafeatures2d.hpp>
 #include <opencv2/xfeatures2d.hpp>
 #include <glog/logging.h>
 
-namespace curec {
+namespace cuphoto {
 
 
 MatchAdjacent::MatchAdjacent(const i32 _src_idx) : src_idx(_src_idx), dst_idx(-1) {
@@ -71,7 +71,7 @@ cv::Ptr<Matcher> create_matcher(const MatcherConfig& mcfg) {
         case FeatureMatcherBackend::FLANN:
             return cv::makePtr<FLANNMatcher>();
         default:
-            throw CuRecException("The given feature matcher backend is not allowed!");
+            throw CuPhotoException("The given feature matcher backend is not allowed!");
     }
 }
 

@@ -7,7 +7,7 @@
 #include <filesystem>
 
 
-namespace curec {
+namespace cuphoto {
 
 
 static void camera_to_center(const r64* camera,

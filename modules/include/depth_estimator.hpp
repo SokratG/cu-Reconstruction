@@ -1,7 +1,7 @@
-#ifndef CUREC_LIB_DEPTH_ESTIMATOR_HPP
-#define CUREC_LIB_DEPTH_ESTIMATOR_HPP
+#ifndef CUPHOTO_LIB_DEPTH_ESTIMATOR_HPP
+#define CUPHOTO_LIB_DEPTH_ESTIMATOR_HPP
 
-namespace curec {
+namespace cuphoto {
 
 
 };

@@ -1,5 +1,5 @@
 #include "rgb_dataset.hpp"
-#include "cr_exception.hpp"
+#include "cp_exception.hpp"
 #include "utils.hpp"
 
 #include <opencv2/opencv.hpp>
@@ -7,7 +7,7 @@
 
 #include <glog/logging.h>
 
-namespace curec {
+namespace cuphoto {
 
 RGBDataset::RGBDataset(const std::string& data_path) : ImageDataset(data_path) {
 

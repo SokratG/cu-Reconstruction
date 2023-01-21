@@ -1,9 +1,9 @@
-#ifndef CUREC_LIB_FEATURE_HPP
-#define CUREC_LIB_FEATURE_HPP
+#ifndef CUPHOTO_LIB_FEATURE_HPP
+#define CUPHOTO_LIB_FEATURE_HPP
 
 #include <opencv2/core/core.hpp>
 
-namespace curec {
+namespace cuphoto {
 
 class KeyFrame;
 

@@ -1,5 +1,5 @@
-#ifndef CUREC_LIB_TYPES_HPP
-#define CUREC_LIB_TYPES_HPP
+#ifndef CUPHOTO_LIB_TYPES_HPP
+#define CUPHOTO_LIB_TYPES_HPP
 
 #include <Eigen/Core>
 #include <Eigen/Dense>
@@ -11,7 +11,7 @@
 
 #include <boost/uuid/uuid.hpp>
 
-namespace curec {
+namespace cuphoto {
 
 using i8 = int8_t;
 using ui8 = uint8_t;
@@ -79,4 +79,4 @@ using uuid = boost::uuids::uuid;
 };
 
 
-#endif  // CUREC_LIB_TYPES_H
+#endif  // CUPHOTO_LIB_TYPES_H

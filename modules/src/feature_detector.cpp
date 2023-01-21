@@ -1,5 +1,5 @@
 #include "feature_detector.hpp"
-#include "cr_exception.hpp"
+#include "cp_exception.hpp"
 #include "cuda_sift.hpp"
 
 #include <opencv2/cudaimgproc.hpp>
@@ -7,7 +7,7 @@
 
 #include <glog/logging.h>
 
-namespace curec {
+namespace cuphoto {
 
 FeatureDetector::FeatureDetector(const FeatureDetectorBackend backend, const std::string_view config) : 
                                  min_keypoints(200)
@@ -20,7 +20,7 @@ FeatureDetector::FeatureDetector(const FeatureDetectorBackend backend, const std
             detector = create_sift(config);
             break;
         default:
-            throw CuRecException("The given feature detector backend is not allowed!");
+            throw CuPhotoException("The given feature detector backend is not allowed!");
     }
 }
 
@@ -40,7 +40,7 @@ bool FeatureDetector::detectAndCompute(const KeyFrame::Ptr frame,
                                        cv::cuda::GpuMat& descriptor) {
     const cv::cuda::GpuMat image = frame->frame();
     if (image.empty()) 
-        throw CuRecException("The given image has no data!");
+        throw CuPhotoException("The given image has no data!");
     std::vector<cv::KeyPoint> k_pts;
     cv::cuda::GpuMat gray;
     cv::cuda::cvtColor(image, gray, cv::COLOR_RGB2GRAY);

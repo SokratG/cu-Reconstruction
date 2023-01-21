@@ -8,7 +8,7 @@ find_package(GFlags REQUIRED)
 # glog
 find_package(Glog REQUIRED)
 # photogrammetry library
-find_library(CUREC_LIB curec_lib)
+find_library(CUPHOTO_LIB cuphoto_lib)
 
 include_directories("${PROJECT_SOURCE_DIR}/modules/include")
 include_directories("${PROJECT_SOURCE_DIR}/examples/common")
@@ -21,6 +21,6 @@ set(SRC_SPARSE "sparse_reconstruction.cpp"
 
 add_executable(sparse ${SRC_SPARSE})
 
-target_link_libraries(sparse curec_lib)
+target_link_libraries(sparse cuphoto_lib)
 target_link_libraries(sparse ${GFLAGS_LIBRARIES})
 target_link_libraries(sparse ${GLOG_LIBRARIES})

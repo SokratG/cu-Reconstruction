@@ -1,9 +1,9 @@
-#ifndef CUREC_LIB_MUTLI_VIEW_SCENE_STEREO_HPP
-#define CUREC_LIB_MUTLI_VIEW_SCENE_STEREO_HPP
+#ifndef CUPHOTO_LIB_MUTLI_VIEW_SCENE_STEREO_HPP
+#define CUPHOTO_LIB_MUTLI_VIEW_SCENE_STEREO_HPP
 
 #include "multi_view_scene.hpp"
 
-namespace curec {
+namespace cuphoto {
 
 class MultiViewSceneStereo : public MultiViewScene {
 public:

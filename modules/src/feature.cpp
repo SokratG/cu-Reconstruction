@@ -1,6 +1,6 @@
 #include "feature.hpp"
 
-namespace curec {
+namespace cuphoto {
 
 bool Feature::outlier() const {
     return is_outlier;

@@ -2,12 +2,12 @@
 #include "visibility_graph.hpp"
 #include "motion_estimation.hpp"
 
-#include "cr_exception.hpp"
+#include "cp_exception.hpp"
 
 #include <glog/logging.h>
 
 
-namespace curec {
+namespace cuphoto {
 
 
 MultiViewSceneRGBD::MultiViewSceneRGBD(const Camera::Ptr _camera, const Camera::Ptr _depth_camera) : 
@@ -32,7 +32,7 @@ bool MultiViewSceneRGBD::add_frame(const cv::cuda::GpuMat rgb, const cv::cuda::G
 
 void MultiViewSceneRGBD::reconstruct_scene() {
     if (rgbd_frames.empty()) {
-        throw CuRecException("The image data is empty! Can't run SFM pipeline");
+        throw CuPhotoException("The image data is empty! Can't run SFM pipeline");
     }
 
     estimate_motion();

@@ -1,9 +1,9 @@
-#ifndef CUREC_LIB_MUTLI_VIEW_SCENE_RGBD_HPP
-#define CUREC_LIB_MUTLI_VIEW_SCENE_RGBD_HPP
+#ifndef CUPHOTO_LIB_MUTLI_VIEW_SCENE_RGBD_HPP
+#define CUPHOTO_LIB_MUTLI_VIEW_SCENE_RGBD_HPP
 
 #include "multi_view_scene.hpp"
 
-namespace curec {
+namespace cuphoto {
 
 
 class MultiViewSceneRGBD : public MultiViewScene {

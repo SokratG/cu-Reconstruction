@@ -1,10 +1,10 @@
 #include "ceres_optim.hpp"
 #include "keyframe.hpp"
-#include "cr_exception.hpp"
+#include "cp_exception.hpp"
 #include <glog/logging.h>
 
 
-namespace curec {
+namespace cuphoto {
 
 CeresCameraModel::CeresCameraModel(const SE3& camera_pose, const Mat3& K) {
     Mat3 R = camera_pose.rotationMatrix();
@@ -60,7 +60,7 @@ ceres::CostFunction* CeresOptimizer::get_cost_function(const Mat3& K, const Vec2
         case TypeReprojectionError::REPROJECTION_FOCAL_RT:
             return ReprojectionErrorFocalRt::create(Vec2(K(0, 2), K(1, 2)), pt);
         default:
-            throw CuRecException("Error: Unknown type of reprojection error!");
+            throw CuPhotoException("Error: Unknown type of reprojection error!");
     }
 }
 
@@ -76,7 +76,7 @@ void CeresOptimizer::build_blocks(const VisibilityGraph& vis_graph,
                                   const std::vector<std::vector<Feature::Ptr>>& feat_pts,
                                   const Camera::Ptr camera) {
     if (landmarks.empty() || frames.empty())
-        throw CuRecException("Error: the given(landmarks | frames) data is empty!");
+        throw CuPhotoException("Error: the given(landmarks | frames) data is empty!");
 
     const Mat3 K = camera->K();
     for (auto cam_idx = 0; cam_idx < frames.size(); ++cam_idx) {

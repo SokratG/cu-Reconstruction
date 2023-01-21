@@ -6,7 +6,7 @@
 #include <opencv2/core/types.hpp>
 
 
-namespace curec {
+namespace cuphoto {
 
 __host__ inline int divUp(int a, int b){
 	return ((a % b) != 0) ? (a / b + 1) : (a / b);

@@ -2,7 +2,7 @@
 #include "motion_estimation.hpp"
 #include "utils.hpp"
 
-namespace curec {
+namespace cuphoto {
 
 void build_landmarks_graph_triangluation(const std::vector<MatchAdjacent>& matching,
                                          const std::vector<KeyFrame::Ptr>& frames,

@@ -1,9 +1,9 @@
-#ifndef CUREC_LIB_TYPES_CUH
-#define CUREC_LIB_TYPES_CUH
+#ifndef CUPHOTO_LIB_TYPES_CUH
+#define CUPHOTO_LIB_TYPES_CUH
 
 #include <stdint.h>
 
-namespace curec {
+namespace cuphoto {
 
 using i8 = int8_t;
 using ui8 = uint8_t;

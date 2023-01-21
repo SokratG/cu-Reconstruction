@@ -1,5 +1,5 @@
-#ifndef CUREC_LIB_UTIL_CUH
-#define CUREC_LIB_UTIL_CUH
+#ifndef CUPHOTO_LIB_UTIL_CUH
+#define CUPHOTO_LIB_UTIL_CUH
 
 #include "types.cuh"
 #include <stdio.h>
@@ -7,7 +7,7 @@
 
 #include <opencv2/core/cuda/common.hpp>
 
-namespace curec {
+namespace cuphoto {
 
 static bool cudaHandleError(cudaError_t err, const ch* file, i32 line)
 {

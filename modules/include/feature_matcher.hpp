@@ -1,5 +1,5 @@
-#ifndef CUREC_LIB_FEATURE_MATCHER_HPP
-#define CUREC_LIB_FEATURE_MATCHER_HPP
+#ifndef CUPHOTO_LIB_FEATURE_MATCHER_HPP
+#define CUPHOTO_LIB_FEATURE_MATCHER_HPP
 
 #include "types.hpp"
 #include "feature.hpp"
@@ -11,7 +11,7 @@
 #include <opencv2/features2d/features2d.hpp>
 #include <opencv2/core/cuda.hpp>
 
-namespace curec {
+namespace cuphoto {
 
 enum class FeatureMatcherBackend {
     BRUTEFORCE,

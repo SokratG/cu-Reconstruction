@@ -1,12 +1,12 @@
-#ifndef CUREC_LIB_LANDMARK_HPP
-#define CUREC_LIB_LANDMARK_HPP
+#ifndef CUPHOTO_LIB_LANDMARK_HPP
+#define CUPHOTO_LIB_LANDMARK_HPP
 
 #include "types.hpp"
 #include "feature.hpp"
 #include <memory>
 #include <mutex>
 
-namespace curec {
+namespace cuphoto {
 
 class Landmark {
 public:
@@ -43,4 +43,4 @@ Landmark::Ptr make_landmark(const Feature::Ptr feat_pt, const Vec3& position_wor
 
 };
 
-#endif // CUREC_LANDMARK_HPP
+#endif // CUPHOTO_LANDMARK_HPP

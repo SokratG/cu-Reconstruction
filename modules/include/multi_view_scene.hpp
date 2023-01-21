@@ -1,5 +1,5 @@
-#ifndef CUREC_LIB_MUTLI_VIEW_SCENE_HPP
-#define CUREC_LIB_MUTLI_VIEW_SCENE_HPP
+#ifndef CUPHOTO_LIB_MUTLI_VIEW_SCENE_HPP
+#define CUPHOTO_LIB_MUTLI_VIEW_SCENE_HPP
 
 #include "camera.hpp"
 #include "keyframe.hpp"
@@ -7,7 +7,7 @@
 #include "feature_matcher.hpp"
 #include <opencv2/core/cuda.hpp>
 
-namespace curec {
+namespace cuphoto {
 
 
 class MultiViewScene {

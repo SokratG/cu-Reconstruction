@@ -1,5 +1,5 @@
-#ifndef CUREC_LIB_FEATURE_DETECTOR_HPP
-#define CUREC_LIB_FEATURE_DETECTOR_HPP
+#ifndef CUPHOTO_LIB_FEATURE_DETECTOR_HPP
+#define CUPHOTO_LIB_FEATURE_DETECTOR_HPP
 
 #include "feature.hpp"
 #include "keyframe.hpp"
@@ -9,7 +9,7 @@
 
 #include <opencv2/features2d/features2d.hpp>
 
-namespace curec {
+namespace cuphoto {
 
 
 // TODO add new GPU feature detector backends

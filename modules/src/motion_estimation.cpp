@@ -9,7 +9,7 @@
 #include <glog/logging.h>
 
 
-namespace curec {
+namespace cuphoto {
 
 void MotionEstimationRansac::estimate_ransac(const std::vector<cv::Point2d>& src, 
                                              const std::vector<cv::Point2d>& dst,

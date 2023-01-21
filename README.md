@@ -1,4 +1,4 @@
-## Cuda Reconstruction
+## Cuda Photogrammetry
 
 ### TODO: add description
 

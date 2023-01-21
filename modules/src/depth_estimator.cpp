@@ -1,6 +1,6 @@
 #include "depth_estimator.hpp"
 
-namespace curec {
+namespace cuphoto {
 
 
 };
