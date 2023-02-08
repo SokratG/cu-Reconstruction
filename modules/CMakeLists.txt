@@ -59,8 +59,8 @@ add_definitions(-D_USE_MATH_DEFINES)
 
 file(GLOB SRC_CUPHOTO_LIB "src/*.cpp" "src/cuda/*.cu")
 
-file(GLOB HEADER_CUPH "${PROJECT_SOURCE_DIR}/modules/include/*.h*" 
-                       "${PROJECT_SOURCE_DIR}/modules/include/cuda/*.cuh")
+file(GLOB HEADER_CUPHOTO "${PROJECT_SOURCE_DIR}/modules/include/*.h*" 
+                         "${PROJECT_SOURCE_DIR}/modules/include/cuda/*.cuh")
 
 add_library(cuphoto_lib SHARED ${SRC_CUPHOTO_LIB})
 
@@ -78,6 +78,7 @@ set_property(TARGET cuphoto_lib PROPERTY CUDA_STANDARD 14)
 
 target_link_libraries(cuphoto_lib rt)
 target_link_libraries(cuphoto_lib cudaSift)
+target_link_libraries(cuphoto_lib cudaUtils)
 target_link_libraries(cuphoto_lib Sophus::Sophus)
 target_link_libraries(cuphoto_lib ${CERES_LIBRARIES})
 target_link_libraries(cuphoto_lib ${CUDA_LIBRARIES})
