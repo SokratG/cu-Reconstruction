@@ -12,6 +12,13 @@ namespace cuphoto {
 
 struct MatchAdjacent;
 
+
+enum class TypeMotion {
+    POSE_POINT = 0,
+    POSE = 1,
+    UNKNOWN
+};
+
 class MotionEstimationRansac {
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
@@ -38,7 +45,8 @@ public:
                          std::vector<KeyFrame::Ptr>& frames,
                          const VisibilityGraph& vis_graph,
                          const std::vector<std::vector<Feature::Ptr>>& feat_pts,
-                         const Camera::Ptr camera);
+                         const Camera::Ptr camera,
+                         const TypeMotion tm = TypeMotion::POSE_POINT);
 };
 
 

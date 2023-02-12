@@ -11,8 +11,9 @@
 namespace cuphoto {
 
 enum class TypeReprojectionError {
-    REPROJECTION_RT = 0,
-    REPROJECTION_FOCAL_RT = 1,
+    REPROJECTION_POSE_POINT = 0,
+    REPROJECTION_POSE = 1,
+    REPROJECTION_FOCAL_POSE = 2,
     UNKNOWN
 };
 

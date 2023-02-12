@@ -52,13 +52,14 @@ CeresOptimizer::CeresOptimizer(const TypeReprojectionError tre, const r64 _loss_
     optim_problem = std::make_shared<ceres::Problem>();
 }
 
-ceres::CostFunction* CeresOptimizer::get_cost_function(const Mat3& K, const Vec2& pt) {
-    switch (type_err) 
-    {
-        case TypeReprojectionError::REPROJECTION_RT:
-            return ReprojectionErrorPose::create(K, pt);
-        case TypeReprojectionError::REPROJECTION_FOCAL_RT:
-            return ReprojectionErrorFocalRt::create(Vec2(K(0, 2), K(1, 2)), pt);
+ceres::CostFunction* CeresOptimizer::get_cost_function(const Mat3& K, const Vec3& world_pt, const Vec2& obs_pt) {
+    switch (type_err) {
+        case TypeReprojectionError::REPROJECTION_POSE_POINT:
+            return ReprojectionErrorPosePoint::create(K, obs_pt);
+        case TypeReprojectionError::REPROJECTION_POSE:
+            return ReprojectionErrorPose::create(K, world_pt, obs_pt);
+        case TypeReprojectionError::REPROJECTION_FOCAL_POSE:
+            return ReprojectionErrorFocalPose::create(Vec2(K(0, 2), K(1, 2)), obs_pt);
         default:
             throw CuPhotoException("Error: Unknown type of reprojection error!");
     }
@@ -101,9 +102,17 @@ void CeresOptimizer::add_block(CeresCameraModel& ceres_camera,
                                CeresObservation& landmark, 
                                const Vec2& observ_pt,
                                const Mat3& K) {
-    ceres::CostFunction* cost_f = get_cost_function(K, observ_pt);
+    ceres::CostFunction* cost_f = get_cost_function(K, landmark.position(), observ_pt);
     ceres::LossFunction* loss_f = loss_width > 0 ? new ceres::CauchyLoss(6.5) : nullptr;
-    optim_problem->AddResidualBlock(cost_f, loss_f, ceres_camera.raw_camera_param, landmark.obs);
+    switch (type_err) {
+        case TypeReprojectionError::REPROJECTION_POSE:
+            optim_problem->AddResidualBlock(cost_f, loss_f, ceres_camera.raw_camera_param);
+            break;
+        default:
+            optim_problem->AddResidualBlock(cost_f, loss_f, ceres_camera.raw_camera_param, landmark.obs);
+            break;
+    }
+    
 }
 
 void CeresOptimizer::optimize(const i32 n_iteration, const i32 num_threads, const bool fullreport) {

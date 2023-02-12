@@ -3,6 +3,9 @@
 
 #include "multi_view_scene.hpp"
 
+#include <tuple>
+#include <string>
+
 namespace cuphoto {
 
 
@@ -26,6 +29,9 @@ public:
     void reconstruct_scene() override;
 
 protected:
+    std::tuple<std::vector<RGB>, std::vector<cv::Mat>> split_rgbd();
+    void filter_outlier_frames(std::vector<std::vector<Feature::Ptr>>& feat_pts,
+                               std::vector<cv::cuda::GpuMat>& descriptors);
     virtual void estimate_motion();
 
 private:

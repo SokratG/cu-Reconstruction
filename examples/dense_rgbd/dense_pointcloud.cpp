@@ -5,6 +5,7 @@
 #include "rgbd_dataset.hpp"
 #include "multi_view_scene_rgbd.hpp"
 
+
 DEFINE_string(dir_path, "./data/dataset/rgbd/scene01", "dataset file path");
 
 int main(int argc, char* argv[]) {
@@ -15,13 +16,13 @@ int main(int argc, char* argv[]) {
 
     cuphoto::RGBDDataset rgbd_dataset(FLAGS_dir_path, 0.001);
     cuphoto::MultiViewSceneRGBD mvs(kinect_rgb, kinect_depth);
-    for (auto i = 0; i < 6; ++i) {
+    for (auto i = 0; i < 5; ++i) {
         auto [rgb, depth] = rgbd_dataset.get_next();
         mvs.add_frame(rgb, depth);
     }
 
     mvs.reconstruct_scene();
-    // mvs.store_to_ply("some.ply", 40.0);
+    mvs.store_to_ply("dense_rgbd_point_cloud.ply");
 
     return EXIT_SUCCESS;
 }

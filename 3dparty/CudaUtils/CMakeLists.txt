@@ -77,4 +77,4 @@ install(TARGETS cudaUtils
 
 # set linker options
 target_link_libraries(cudaUtils ${CUDA_cudadevrt_LIBRARY})
-target_link_libraries(cudaUtils nvinfer nvinfer_plugin nvcaffe_parser)
+target_link_libraries(cudaUtils nvinfer nvinfer_plugin nvonnxparser nvcaffe_parser)

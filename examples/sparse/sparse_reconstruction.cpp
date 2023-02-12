@@ -31,7 +31,7 @@ int main(int argc, char* argv[]) {
     }
 
     sfm.run_pipeline();
-    sfm.store_to_ply("some.ply", 40.0);
+    sfm.store_to_ply("sparse_point_cloud.ply", 40.0);
 
     return EXIT_SUCCESS;
 }

@@ -52,7 +52,7 @@ void Sfm::run_pipeline() {
 }
 
 
-void Sfm::store_to_ply(const std::string_view& ply_filepath, const r64 range_threshold) {
+void Sfm::store_to_ply(const std::string_view& ply_filepath, const r64 range_threshold) const {
     std::vector<Vec3> pts;
     std::vector<Vec3f> colors;
     std::vector<SE3> poses;

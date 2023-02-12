@@ -19,7 +19,7 @@ public:
     Sfm(const Camera::Ptr camera);
     bool add_frame(const cv::cuda::GpuMat frame);
     void run_pipeline();
-    void store_to_ply(const std::string_view& ply_filepath, const r64 depth_threshold);
+    void store_to_ply(const std::string_view& ply_filepath, const r64 depth_threshold) const;
     std::vector<KeyFrame::Ptr> get_frames() const;
 private:
 

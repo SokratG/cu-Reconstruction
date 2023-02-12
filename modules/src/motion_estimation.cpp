@@ -1,6 +1,7 @@
 #include "motion_estimation.hpp"
 #include "feature_matcher.hpp"
 #include "bundle_adjustment.hpp"
+#include "cp_exception.hpp"
 #include "utils.hpp"
 
 #include <utility>
@@ -10,6 +11,22 @@
 
 
 namespace cuphoto {
+
+
+BundleAdjustment::Ptr get_ba_problem(const TypeMotion tm) 
+{
+    switch (tm) {
+        case TypeMotion::POSE_POINT:
+            return std::make_shared<BundleAdjustment>(OptimizerType::BA_CERES, 
+                                                      TypeReprojectionError::REPROJECTION_POSE_POINT);
+        case TypeMotion::POSE:
+            return std::make_shared<BundleAdjustment>(OptimizerType::BA_CERES, 
+                                                      TypeReprojectionError::REPROJECTION_POSE);
+        default:
+            throw CuPhotoException("Error: Unknown type of motion in optimization!");
+    }
+}
+
 
 void MotionEstimationRansac::estimate_ransac(const std::vector<cv::Point2d>& src, 
                                              const std::vector<cv::Point2d>& dst,
@@ -57,19 +74,20 @@ bool MotionEstimationRansac::estimate_motion(std::vector<KeyFrame::Ptr>& frames,
     return true;
 }
 
+
 bool MotionEstimationOptimization::estimate_motion(std::vector<Landmark::Ptr>& landmarks,
                                                    std::vector<KeyFrame::Ptr>& frames,
                                                    const VisibilityGraph& vis_graph,
                                                    const std::vector<std::vector<Feature::Ptr>>& feat_pts,
-                                                   const Camera::Ptr camera) {
+                                                   const Camera::Ptr camera,
+                                                   const TypeMotion tm) {
     if (landmarks.empty() || frames.empty()) {
         LOG(ERROR) << "The given data is empty:";
         LOG(ERROR) << "frames: " << frames.empty();
         LOG(ERROR) << "landmarks: " << landmarks.empty();
         return false;
     }
-    BundleAdjustment::Ptr ba = std::make_shared<BundleAdjustment>(OptimizerType::BA_CERES, 
-                                                                  TypeReprojectionError::REPROJECTION_RT);
+    BundleAdjustment::Ptr ba = get_ba_problem(tm);
     
     ba->build_problem(vis_graph, landmarks, frames, feat_pts, camera);
 
