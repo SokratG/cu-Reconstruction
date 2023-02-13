@@ -22,8 +22,8 @@ void MultiViewScene::detect_feature(const std::vector<KeyFrame::Ptr>& frames,
 
 
 void MultiViewScene::matching_feature(const std::vector<std::vector<Feature::Ptr>>& feat_pts,
-                                      const std::vector<cv::cuda::GpuMat>& descriptors, 
-                                      std::vector<MatchAdjacent>& matching) 
+                                      const std::vector<cv::cuda::GpuMat>& descriptors,
+                                      std::vector<MatchAdjacent>& matching)
 {
     matching = feature_matching(descriptors,
                                 feat_pts,

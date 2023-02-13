@@ -9,6 +9,7 @@ namespace cuphoto {
 
 enum class OptimizerType {
     BA_CERES = 0,
+    BA_CERES_ICP = 1,
     BA_UNKNOWN
 };
 
@@ -30,8 +31,16 @@ public:
                        const std::vector<KeyFrame::Ptr>& frames,
                        const std::vector<std::vector<Feature::Ptr>>& feat_pts,
                        const Camera::Ptr camera);
+
+    void build_problem(const std::unordered_map<i32, ConnectionPoints>& pts3D,
+                       const std::vector<MatchAdjacent>& ma,
+                       const std::vector<KeyFrame::Ptr>& frames);
+
+
     void solve(std::vector<Landmark::Ptr>& landmarks, 
                std::vector<KeyFrame::Ptr>& frames,
+               const BAParam& ba_param = BAParam());
+    void solve(std::vector<KeyFrame::Ptr>& frames,
                const BAParam& ba_param = BAParam());
 protected:
     Optimizer::Ptr get_optimizer(const OptimizerType opt_type, const TypeReprojectionError type_err) const;

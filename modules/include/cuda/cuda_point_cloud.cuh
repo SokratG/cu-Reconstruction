@@ -50,6 +50,8 @@ public:
 
 	inline Vertex* get_points() const { return device_pts; }
 
+	inline void set_current_pts() {num_pts = total_num_pts;}
+
 	bool extract_points(const cv::cuda::PtrStepSzf depth,
 						const cv::cuda::PtrStepb colors,
 						const std::array<r64, 7>& transform,

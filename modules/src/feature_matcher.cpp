@@ -81,7 +81,6 @@ std::vector<MatchAdjacent> feature_matching(const std::vector<cv::cuda::GpuMat>&
                                             const Mat3& intrinsic,
                                             const MatcherConfig& mcfg) {
     cv::Ptr<Matcher> matcher = create_matcher(mcfg);                                            
-    
     const i32 adj_size = descriptors.size();
     cv::Mat K;
     cv::eigen2cv(intrinsic, K);
@@ -114,15 +113,15 @@ std::vector<MatchAdjacent> feature_matching(const std::vector<cv::cuda::GpuMat>&
             }
 
             if (inliers_size < mcfg.min_inlier) {
-                LOG(WARNING) << "images " << i << " and " << j << " don't have enough inliers: " << inliers_size; 
+                LOG(WARNING) << "images " << i << " and " << j << " don't have enough inliers: " << inliers_size;
                 continue;
             }
-            
+
             if (max_inliers < inliers_size) {
                 match_adj.dst_idx = j;
                 match_adj.match = match;
                 max_inliers = inliers_size;
-            }           
+            }
         }
         matching.emplace_back(match_adj);
     }

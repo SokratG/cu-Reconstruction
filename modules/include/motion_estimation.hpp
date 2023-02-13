@@ -16,6 +16,7 @@ struct MatchAdjacent;
 enum class TypeMotion {
     POSE_POINT = 0,
     POSE = 1,
+    POSE_ICP = 2,
     UNKNOWN
 };
 
@@ -35,6 +36,18 @@ private:
                          Mat3& R, Vec3& t);
 };
 
+class MotionEstimationICP {
+public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+    using Ptr = std::shared_ptr<MotionEstimationICP>;
+
+    bool estimate_motion(std::vector<KeyFrame::Ptr>& frames,
+                         const std::vector<MatchAdjacent>& ma,
+                         const std::unordered_map<i32, ConnectionPoints>& pts3D);
+private:
+    void estimate_icp(const ConnectionPoints& pts, Mat3& R, Vec3& t);
+};
+
 
 class MotionEstimationOptimization {
 public:
@@ -47,6 +60,11 @@ public:
                          const std::vector<std::vector<Feature::Ptr>>& feat_pts,
                          const Camera::Ptr camera,
                          const TypeMotion tm = TypeMotion::POSE_POINT);
+
+    bool estimate_motion(std::vector<KeyFrame::Ptr>& frames,
+                         const std::vector<MatchAdjacent>& ma,
+                         const std::unordered_map<i32, ConnectionPoints>& pts3D,
+                         const TypeMotion tm = TypeMotion::POSE_ICP);
 };
 
 

@@ -6,7 +6,8 @@
 #include "feature_detector.hpp"
 #include <string>
 #include <vector>
-#include <map>
+#include <unordered_map>
+#include <set>
 #include <memory>
 #include <opencv2/features2d/features2d.hpp>
 #include <opencv2/core/cuda.hpp>

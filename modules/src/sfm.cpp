@@ -6,6 +6,7 @@
 #include "cp_exception.hpp"
 
 #include <numeric>
+#include <unordered_set>
 #include <glog/logging.h>
 
 namespace cuphoto {
@@ -40,8 +41,10 @@ void Sfm::run_pipeline() {
     }
 
     std::vector<std::vector<Feature::Ptr>> feat_pts;
+    std::vector<cv::cuda::GpuMat> descriptors;
+    filter_outlier_frames(feat_pts, descriptors);
     std::vector<MatchAdjacent> matching;
-    detect_feature(feat_pts, matching);
+    matching_feature(feat_pts, descriptors, matching);
 
     LOG(INFO) << "Feature matching size: " << matching.size();
 
@@ -74,11 +77,33 @@ void Sfm::store_to_ply(const std::string_view& ply_filepath, const r64 range_thr
     write_ply_file(ply_filepath, poses, pts, colors);
 }
 
+void Sfm::filter_outlier_frames(std::vector<std::vector<Feature::Ptr>>& feat_pts,
+                                std::vector<cv::cuda::GpuMat>& descriptors) {
+    detect_feature(feat_pts, descriptors);
+    std::vector<MatchAdjacent> matching;
+    matching_feature(feat_pts, descriptors, matching);
 
-void Sfm::detect_feature(std::vector<std::vector<Feature::Ptr>>& feat_pts, std::vector<MatchAdjacent>& matching) {
+    std::vector<KeyFrame::Ptr> filtered_frames;
+    std::vector<cv::cuda::GpuMat> filtered_descriptors;
+    std::vector<std::vector<Feature::Ptr>> filtered_feature_pts;
+    for (const auto& match : matching) {
+        const auto src_idx = match.src_idx;
+        if (match.dst_idx != -1) {
+            filtered_descriptors.emplace_back(descriptors.at(src_idx));
+            filtered_feature_pts.emplace_back(feat_pts.at(src_idx));
+            filtered_frames.emplace_back(frames.at(src_idx));
+        }
+    }
+    descriptors = filtered_descriptors;
+    feat_pts = filtered_feature_pts;
+    frames = filtered_frames;
+}
+
+
+void Sfm::detect_feature(std::vector<std::vector<Feature::Ptr>>& feat_pts,
+                         std::vector<cv::cuda::GpuMat>& descriptors) {
     // TODO add config
     FeatureDetector fd(FeatureDetectorBackend::SIFT, "");
-    std::vector<cv::cuda::GpuMat> descriptors;
     for (const auto frame : frames) {
         std::vector<Feature::Ptr> kpts;
         cv::cuda::GpuMat descriptor;
@@ -86,7 +111,12 @@ void Sfm::detect_feature(std::vector<std::vector<Feature::Ptr>>& feat_pts, std::
         descriptors.emplace_back(descriptor);
         feat_pts.emplace_back(kpts);
     }
+}
 
+
+void Sfm::matching_feature(const std::vector<std::vector<Feature::Ptr>>& feat_pts,
+                           const std::vector<cv::cuda::GpuMat>& descriptors,
+                           std::vector<MatchAdjacent>& matching) {
     matching = feature_matching(descriptors,
                                 feat_pts,
                                 camera->K());

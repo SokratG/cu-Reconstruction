@@ -20,9 +20,18 @@ int main(int argc, char* argv[]) {
         auto [rgb, depth] = rgbd_dataset.get_next();
         mvs.add_frame(rgb, depth);
     }
-
-    mvs.reconstruct_scene();
-    mvs.store_to_ply("dense_rgbd_point_cloud.ply");
+    try {
+        mvs.reconstruct_scene();
+        // mvs.store_to_ply("dense_rgbd_point_cloud.ply");
+    } catch(cuphoto::CuPhotoException& photo_ex) {
+        LOG(ERROR) << photo_ex.what();
+        return EXIT_FAILURE;
+    } catch (std::exception& ex) {
+        LOG(ERROR) << ex.what();
+        return EXIT_FAILURE;
+    } catch(...) {
+        return EXIT_FAILURE;
+    }
 
     return EXIT_SUCCESS;
 }

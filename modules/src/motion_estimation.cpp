@@ -22,6 +22,9 @@ BundleAdjustment::Ptr get_ba_problem(const TypeMotion tm)
         case TypeMotion::POSE:
             return std::make_shared<BundleAdjustment>(OptimizerType::BA_CERES, 
                                                       TypeReprojectionError::REPROJECTION_POSE);
+        case TypeMotion::POSE_ICP:
+            return std::make_shared<BundleAdjustment>(OptimizerType::BA_CERES_ICP,
+                                                      TypeReprojectionError::REPROJECTION_POSE);
         default:
             throw CuPhotoException("Error: Unknown type of motion in optimization!");
     }
@@ -75,6 +78,70 @@ bool MotionEstimationRansac::estimate_motion(std::vector<KeyFrame::Ptr>& frames,
 }
 
 
+bool MotionEstimationICP::estimate_motion(std::vector<KeyFrame::Ptr>& frames,
+                                          const std::vector<MatchAdjacent>& ma,
+                                          const std::unordered_map<i32, ConnectionPoints>& pts3D) {
+    if (pts3D.empty() || ma.empty() || frames.empty()) {
+        LOG(ERROR) << "The given data is empty:";
+        LOG(ERROR) << "frames: " << frames.empty();
+        LOG(ERROR) << "matching:" << ma.empty();
+        LOG(ERROR) << "3D points : " << pts3D.empty();
+        return false;
+    }
+
+    for (const auto& adj : ma) {
+        const i32 src_idx = adj.src_idx;
+        if (adj.dst_idx < 0)
+            continue;
+        const i32 dst_idx = adj.dst_idx;
+        const auto& pts = pts3D.at(src_idx);
+
+        Mat3 R; Vec3 t;
+        estimate_icp(pts, R, t);
+
+        frames[dst_idx]->pose(R, t);
+        const auto src2dst_pose = frames[dst_idx]->pose();
+        frames[dst_idx]->pose(frames[src_idx]->pose() * src2dst_pose);
+    }
+
+    return true;
+}
+
+
+void MotionEstimationICP::estimate_icp(const ConnectionPoints& pts, Mat3& R, Vec3& t) {
+    Vec3 center_p1, center_p2; // center mass
+    const auto N = pts.size();
+    for (auto i = 0; i < N; ++i) {
+        center_p1 += pts[i].first;
+        center_p2 += pts[i].second;
+    }
+
+    center_p1 = center_p1 / N;
+    center_p2 = center_p2 / N;
+
+    // remove the center - de-centroid coordinates
+    std::vector<Vec3> q1(N), q2(N);
+    for (auto i = 0; i < N; ++i) {
+        q1[i] = pts[i].first - center_p1;
+        q2[i] = pts[i].second - center_p2;
+    }
+
+    // q1∗q2^T
+    Mat3 W = Mat3::Zero();
+    for (auto i = 0; i < N; ++i)
+        W += q1[i] * q2[i].transpose();
+    
+    Eigen::JacobiSVD<Mat3> svd(W, Eigen::ComputeFullU | Eigen::ComputeFullV);
+    Mat3 U = svd.matrixU();
+    Mat3 V = svd.matrixV();
+    R = U * (V.transpose());
+    if (R.determinant() < 0)
+        R = -R;
+
+    t = center_p1 - R * center_p2;
+}
+
+
 bool MotionEstimationOptimization::estimate_motion(std::vector<Landmark::Ptr>& landmarks,
                                                    std::vector<KeyFrame::Ptr>& frames,
                                                    const VisibilityGraph& vis_graph,
@@ -92,6 +159,27 @@ bool MotionEstimationOptimization::estimate_motion(std::vector<Landmark::Ptr>& l
     ba->build_problem(vis_graph, landmarks, frames, feat_pts, camera);
 
     ba->solve(landmarks, frames);
+
+    return true;
+}
+
+bool MotionEstimationOptimization::estimate_motion(std::vector<KeyFrame::Ptr>& frames,
+                                                   const std::vector<MatchAdjacent>& ma,
+                                                   const std::unordered_map<i32, ConnectionPoints>& pts3D,
+                                                   const TypeMotion tm) {
+    if (pts3D.empty() || ma.empty() || frames.empty()) {
+        LOG(ERROR) << "The given data is empty:";
+        LOG(ERROR) << "frames: " << frames.empty();
+        LOG(ERROR) << "matching:" << ma.empty();
+        LOG(ERROR) << "3D points : " << pts3D.empty();
+        return false;
+    }
+
+    BundleAdjustment::Ptr ba = get_ba_problem(tm);
+
+    ba->build_problem(pts3D, ma, frames);
+
+    ba->solve(frames);
 
     return true;
 }

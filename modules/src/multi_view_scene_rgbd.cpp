@@ -3,8 +3,10 @@
 #include "motion_estimation.hpp"
 
 #include "cp_exception.hpp"
+#include "point_cloud_utility.hpp"
 
 #include <glog/logging.h>
+
 
 
 namespace cuphoto {
@@ -37,30 +39,23 @@ void MultiViewSceneRGBD::reconstruct_scene() {
 
     estimate_motion();
 
-    std::array<r64, 9> K;
-    Vec9::Map(K.data()) = Eigen::Map<Vec9>(camera->K().data(), camera->K().cols() * camera->K().rows());
-
     const auto width = rgbd_frames.front()->depth->frame().cols;
     const auto height = rgbd_frames.front()->depth->frame().rows;
     const size_t total_number_pts = rgbd_frames.size() * width * height;
     
-    cuda_pc = cudaPointCloud::create(K, total_number_pts);
+    // cuda_pc = cudaPointCloud::create(K, total_number_pts);
 
     for (auto idx = 0; idx < rgbd_frames.size(); ++idx) {
-        cv::cuda::GpuMat depth = rgbd_frames.at(idx)->depth->frame();
-        cv::cuda::GpuMat rgb = rgbd_frames.at(idx)->rgb->frame();
+        const KeyFrame::Ptr depth = rgbd_frames.at(idx)->depth;
+        const KeyFrame::Ptr rgb = rgbd_frames.at(idx)->rgb;
 
-        Mat3 R = rgbd_frames.at(idx)->rgb->pose().rotationMatrix();
-        Vec3 t = rgbd_frames.at(idx)->rgb->pose().translation();
-        Eigen::Quaterniond q(R);
-
-        std::array<r64, 7> transform {q.w(), q.x(), q.y(), q.z(), 
-                                      t.x(), t.y(), t.z()};
-
-        cuda_pc->extract_points(depth, rgb, transform, idx);
+        cudaPointCloud::Ptr tmp_cu_pc = pcl_to_cuda_pc(rgb, depth, camera);
+        
     }
     
-    cuda_pc->filter_depth(0.0f);
+    // cuda_pc->filter_depth(0.0f);
+
+    // statistical_filter_pc(cuda_pc);
 }
 
 
@@ -101,6 +96,8 @@ void MultiViewSceneRGBD::filter_outlier_frames(std::vector<std::vector<Feature::
 void MultiViewSceneRGBD::estimate_motion() {
     std::vector<std::vector<Feature::Ptr>> feat_pts;
     std::vector<cv::cuda::GpuMat> descriptors;
+
+    LOG(INFO) << "Filter given images by outlier features";
     filter_outlier_frames(feat_pts, descriptors);
 
     if (rgbd_frames.size() < 2) {
@@ -108,21 +105,20 @@ void MultiViewSceneRGBD::estimate_motion() {
     }
 
     LOG(INFO) << "Current number of images after filtering is: " << rgbd_frames.size();
-
+    
     auto [rgb_frames, depth_frames] = split_rgbd();
 
     std::vector<MatchAdjacent> matching;
     matching_feature(feat_pts, descriptors, matching);
 
-    VisibilityGraph vis_graph;
-    std::vector<Landmark::Ptr> landmarks;
-    build_landmarks_graph_depth(matching, rgb_frames, depth_frames, feat_pts, camera, vis_graph, landmarks);
-    
-    MotionEstimationRansac::Ptr me_ransac = std::make_shared<MotionEstimationRansac>();
-    me_ransac->estimate_motion(rgb_frames, matching, feat_pts, camera);
+    std::unordered_map<i32, ConnectionPoints> conn_pts;
+    build_visibility_connection_points(matching, rgb_frames, depth_frames, feat_pts, camera, conn_pts);
+
+    MotionEstimationICP::Ptr me_icp = std::make_shared<MotionEstimationICP>();
+    me_icp->estimate_motion(rgb_frames, matching, conn_pts);
 
     MotionEstimationOptimization::Ptr me_optim = std::make_shared<MotionEstimationOptimization>();
-    me_optim->estimate_motion(landmarks, rgb_frames, vis_graph, feat_pts, camera, TypeMotion::POSE); // TypeMotion::POSE
+    me_optim->estimate_motion(rgb_frames, matching, conn_pts);
 
     for (auto i = 0; i < rgb_frames.size(); ++i) {
         rgbd_frames[i]->rgb->pose(rgb_frames[i]->pose());

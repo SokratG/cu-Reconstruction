@@ -16,7 +16,7 @@ void build_landmarks_graph_triangluation(const std::vector<MatchAdjacent>& match
     landmarks = std::vector<Landmark::Ptr>();
     for (const auto& adj : matching) {
         const i32 src_idx = adj.src_idx;
-        if (adj.dst_idx < 0)
+        if (adj.dst_idx == -1)
             continue;
         const i32 dst_idx = adj.dst_idx;
         const auto& match = adj.match;
@@ -88,7 +88,7 @@ void build_landmarks_graph_depth(const std::vector<MatchAdjacent>& matching,
     const auto K = camera->K();
     for (const auto& adj : matching) {
         const i32 src_idx = adj.src_idx;
-        if (adj.dst_idx < 0)
+        if (adj.dst_idx == -1)
             continue;
         const i32 dst_idx = adj.dst_idx;
         const auto& match = adj.match;
@@ -149,5 +149,53 @@ void build_landmarks_graph_depth(const std::vector<MatchAdjacent>& matching,
 
 }
 
+
+
+void build_visibility_connection_points(const std::vector<MatchAdjacent>& matching,
+                                        const std::vector<KeyFrame::Ptr>& frames,
+                                        const std::vector<cv::Mat>& depth,
+                                        const std::vector<std::vector<Feature::Ptr>>& feat_pts,
+                                        const Camera::Ptr camera,
+                                        std::unordered_map<i32, ConnectionPoints>& pts3D) {
+    pts3D = std::unordered_map<i32, ConnectionPoints>();
+    const auto K = camera->K();
+    for (const auto& adj : matching) {
+        const i32 src_idx = adj.src_idx;
+        if (adj.dst_idx == -1)
+            continue;
+
+        const i32 dst_idx = adj.dst_idx;
+        const auto& match = adj.match;
+        const auto match_size = match.size();
+        auto adj_pts = ConnectionPoints();
+        for (auto i = 0; i < match_size; ++i) {
+            const auto pt_src_idx = match.at(i).queryIdx; 
+            const auto pt_dst_idx = match.at(i).trainIdx;
+            
+            const auto src_feat_pt = feat_pts[src_idx].at(pt_src_idx);
+            const auto dst_feat_pt = feat_pts[dst_idx].at(pt_dst_idx);
+
+            const auto src_pt = src_feat_pt->position.pt;
+            const auto dst_pt = dst_feat_pt->position.pt;
+
+            const r64 z1 = depth.at(src_idx).at<r32>(src_pt);
+            const r64 x1 = (src_pt.x - K(0, 2)) * z1 / K(0, 0);
+            const r64 y1 = (src_pt.y - K(1, 2)) * z1 / K(1, 1);
+            Vec3 src_pt_world(x1, y1, z1);
+
+            const r64 z2 = depth.at(dst_idx).at<r32>(dst_pt);
+            const r64 x2 = (dst_pt.x - K(0, 2)) * z2 / K(0, 0);
+            const r64 y2 = (dst_pt.y - K(1, 2)) * z2 / K(1, 1);
+            Vec3 dst_pt_world(x2, y2, z2);
+
+            if (src_pt_world.z() > 1e-7 && dst_pt_world.z() > 1e-7) {
+                adj_pts.emplace_back(std::make_pair(src_pt_world, dst_pt_world));
+            }
+        }
+        if (!adj_pts.empty())
+            pts3D.insert({src_idx, adj_pts});
+    }
+
+}
 
 };

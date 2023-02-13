@@ -36,6 +36,8 @@ find_package(Sophus REQUIRED)
 find_package(Ceres REQUIRED)
 # boost
 find_package(Boost REQUIRED)
+# PCL
+find_package(PCL 1.10 REQUIRED)
 # CudaSift
 # find_library(CUDA_SIFT 
 #             NAMES cudaSift
@@ -51,10 +53,11 @@ include_directories(${EIGEN3_INCLUDE_DIR})
 include_directories(${OpenCV_INCLUDE_DIRS})
 include_directories(${Sophus_INCLUDE_DIRS})
 include_directories(${CERES_INCLUDE_DIRS})
+include_directories(${PCL_INCLUDE_DIRS})
 include_directories(${CUDA_INCLUDE_DIRS})
 include_directories(${GLOG_INCLUDE_DIRS})
 
-
+add_definitions(${PCL_DEFINITIONS})
 add_definitions(-D_USE_MATH_DEFINES)
 
 file(GLOB SRC_CUPHOTO_LIB "src/*.cpp" "src/cuda/*.cu")
@@ -82,6 +85,7 @@ target_link_libraries(cuphoto_lib cudaUtils)
 target_link_libraries(cuphoto_lib Sophus::Sophus)
 target_link_libraries(cuphoto_lib ${CERES_LIBRARIES})
 target_link_libraries(cuphoto_lib ${CUDA_LIBRARIES})
+target_link_libraries(cuphoto_lib ${PCL_LIBRARIES})
 target_link_libraries(cuphoto_lib ${OpenCV_LIBRARIES})
 target_link_libraries(cuphoto_lib ${GLOG_LIBRARIES})
 target_link_libraries(cuphoto_lib stdc++fs)

@@ -1,8 +1,0 @@
-#ifndef CUPHOTO_LIB_POINT_CLOUD_ESTIMATOR_HPP
-#define CUPHOTO_LIB_POINT_CLOUD_ESTIMATOR_HPP
-
-namespace cuphoto {
-
-};
-
-#endif

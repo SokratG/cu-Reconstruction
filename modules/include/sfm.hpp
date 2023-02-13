@@ -23,8 +23,15 @@ public:
     std::vector<KeyFrame::Ptr> get_frames() const;
 private:
 
+    void filter_outlier_frames(std::vector<std::vector<Feature::Ptr>>& feat_pts,
+                               std::vector<cv::cuda::GpuMat>& descriptors);
+
     void detect_feature(std::vector<std::vector<Feature::Ptr>>& feat_pts,
-                        std::vector<MatchAdjacent>& matching);
+                        std::vector<cv::cuda::GpuMat>& descriptors);
+    
+    void matching_feature(const std::vector<std::vector<Feature::Ptr>>& feat_pts,
+                          const std::vector<cv::cuda::GpuMat>& descriptors,
+                          std::vector<MatchAdjacent>& matching);
 
     void estimation_motion(const std::vector<MatchAdjacent>& matching,
                            std::vector<std::vector<Feature::Ptr>>& feat_pts);

@@ -12,12 +12,10 @@ namespace cuphoto {
 
 struct CeresCameraModel {
     CeresCameraModel() = delete;
-    CeresCameraModel(const SE3& camera_pose, const Mat3& K);
+    CeresCameraModel(const SE3& camera_pose);
 
-    Mat3 K() const;
     SE3 pose() const;
-    r64 raw_camera_param[8];
-    Vec2 camera_center;
+    r64 raw_camera_param[7];
 };
 
 struct CeresObservation {
@@ -138,73 +136,73 @@ private:
 };
 
 
-class ReprojectionErrorFocalPose
+class ErrorICPPose
 {
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
-    using Ptr = std::shared_ptr<ReprojectionErrorFocalPose>;
+    using Ptr = std::shared_ptr<ErrorICPPose>;
 
-
-    ReprojectionErrorFocalPose(const Vec2& camera_center, const Vec2& observation_point) : 
-                               center(camera_center), observation(observation_point) {
+    ErrorICPPose(const Vec3& _src_pt, const Vec3& _dst_pt) : 
+                 src_pt(_src_pt), dst_pt(_dst_pt) {
 
     }
 
-    // camera : 8 dims array
+    // camera : 7 dims array
     // [0-3] : quaternion rotation
     // [4-6] : translation
-    // [7] : focal length
-    // point : 3D location
-    // predictions : 2D predictions with center of the image plane
+    // predictions : 3D prediction as a diff between src and dst point
     template<typename T>
     bool operator()(const T* camera,
-                    const T* point,
                     T* residual) const {
         T P[3];
-        ceres::QuaternionRotatePoint(camera, point, P);  // UnitQuaternionRotatePoint?
+        const T world_point[3] {static_cast<T>(src_pt.x()), static_cast<T>(src_pt.y()), static_cast<T>(src_pt.z())};
+
+        ceres::QuaternionRotatePoint(camera, world_point, P);  // UnitQuaternionRotatePoint?
         P[0] += camera[4];
         P[1] += camera[5];
         P[2] += camera[6];
-
-        const T f = camera[7];
-
-        // project to camera image: p = K * P'
-        T prediction[2];
-        prediction[0] = f * P[0] / P[2] + center.x();
-        prediction[1] = f * P[1] / P[2] + center.y();
-
-        residual[0] = T(observation.x()) - prediction[0];
-        residual[1] = T(observation.y()) - prediction[1];
+        
+        residual[0] = static_cast<T>(dst_pt.x()) - P[0];
+        residual[1] = static_cast<T>(dst_pt.y()) - P[1];
+        residual[2] = static_cast<T>(dst_pt.z()) - P[2];
         return true;
     }
 
-    static ceres::CostFunction* create(const Vec2& camera_center, const Vec2& observation_point) {
-        return (new ceres::AutoDiffCostFunction<ReprojectionErrorFocalPose, 2, 8, 3>(
-            new ReprojectionErrorFocalPose(camera_center, observation_point)
+    static ceres::CostFunction* create(const Vec3& src_pt, const Vec3& dst_pt) {
+        return (new ceres::AutoDiffCostFunction<ErrorICPPose, 3, 7>(
+            new ErrorICPPose(src_pt, dst_pt)
         ));
     }
 
 private:
-    Vec2 observation;
-    Vec2 center;
+    Vec3 src_pt;
+    Vec3 dst_pt;
 };
 
 
-class CeresOptimizer : public Optimizer {
+class CeresOptimizerReprojection : public Optimizer {
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
-    using Ptr = std::shared_ptr<CeresOptimizer>;
+    using Ptr = std::shared_ptr<CeresOptimizerReprojection>;
 
-    CeresOptimizer(const TypeReprojectionError tre, const r64 loss_width = 6.5);
-    virtual void build_blocks(const VisibilityGraph& vis_graph,
-                              const std::vector<Landmark::Ptr>& landmarks, 
-                              const std::vector<KeyFrame::Ptr>& frames,
-                              const std::vector<std::vector<Feature::Ptr>>& feat_pts,
-                              const Camera::Ptr camera) override;
-    virtual void optimize(const i32 n_iteration, const i32 num_threads, const bool fullreport) override;
-    virtual void store_result(std::vector<Landmark::Ptr>& landmarks, 
-                              std::vector<KeyFrame::Ptr>& frames) override;
+    CeresOptimizerReprojection(const TypeReprojectionError tre, const r64 loss_width = 6.5);
+    void optimize(const i32 n_iteration, const i32 num_threads, const bool fullreport) override;
+
+    void build_blocks_reprojection(const VisibilityGraph& vis_graph,
+                                   const std::vector<Landmark::Ptr>& landmarks, 
+                                   const std::vector<KeyFrame::Ptr>& frames,
+                                   const std::vector<std::vector<Feature::Ptr>>& feat_pts,
+                                   const Camera::Ptr camera) override;
+    
+    void store_result(std::vector<Landmark::Ptr>& landmarks, 
+                      std::vector<KeyFrame::Ptr>& frames) override;
     void reset();
+
+    void build_blocks_icp(const std::unordered_map<i32, ConnectionPoints>& pts3D,
+                          const std::vector<MatchAdjacent>& ma, 
+                          const std::vector<KeyFrame::Ptr>& frames) override;
+
+    void store_result(std::vector<KeyFrame::Ptr>& frames) override;
 protected:
     void add_block(CeresCameraModel& ceres_camera, CeresObservation& landmark, 
                    const Vec2& observ_pt, const Mat3& K);
@@ -217,6 +215,40 @@ private:
     r64 loss_width;
     TypeReprojectionError type_err;
 };
+
+
+class CeresOptimizerICP : public Optimizer {
+public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+    using Ptr = std::shared_ptr<CeresOptimizerICP>;
+
+    CeresOptimizerICP(const r64 loss_width = 5.5);
+    void optimize(const i32 n_iteration, const i32 num_threads, const bool fullreport) override;
+    void build_blocks_icp(const std::unordered_map<i32, ConnectionPoints>& pts3D,
+                          const std::vector<MatchAdjacent>& ma, 
+                          const std::vector<KeyFrame::Ptr>& frames) override;
+    void store_result(std::vector<KeyFrame::Ptr>& frames) override;
+
+
+    void build_blocks_reprojection(const VisibilityGraph& vis_graph,
+                                   const std::vector<Landmark::Ptr>& landmarks, 
+                                   const std::vector<KeyFrame::Ptr>& frames,
+                                   const std::vector<std::vector<Feature::Ptr>>& feat_pts,
+                                   const Camera::Ptr camera) override;
+    
+    void store_result(std::vector<Landmark::Ptr>& landmarks, 
+                      std::vector<KeyFrame::Ptr>& frames) override;
+
+    void reset();
+private:
+    void add_block(CeresCameraModel& ceres_camera, const Vec3& src_pt, const Vec3& dst_pt); 
+
+private:
+    std::shared_ptr<ceres::Problem> optim_problem;
+    std::unordered_map<ui64, CeresCameraModel> ceres_cameras;
+    r64 loss_width;
+};
+
 
 };
 
