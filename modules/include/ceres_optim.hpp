@@ -136,13 +136,13 @@ private:
 };
 
 
-class ErrorICPPose
+class ICPErrorPose
 {
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
-    using Ptr = std::shared_ptr<ErrorICPPose>;
+    using Ptr = std::shared_ptr<ICPErrorPose>;
 
-    ErrorICPPose(const Vec3& _src_pt, const Vec3& _dst_pt) : 
+    ICPErrorPose(const Vec3& _src_pt, const Vec3& _dst_pt) : 
                  src_pt(_src_pt), dst_pt(_dst_pt) {
 
     }
@@ -169,8 +169,8 @@ public:
     }
 
     static ceres::CostFunction* create(const Vec3& src_pt, const Vec3& dst_pt) {
-        return (new ceres::AutoDiffCostFunction<ErrorICPPose, 3, 7>(
-            new ErrorICPPose(src_pt, dst_pt)
+        return (new ceres::AutoDiffCostFunction<ICPErrorPose, 3, 7>(
+            new ICPErrorPose(src_pt, dst_pt)
         ));
     }
 
@@ -222,7 +222,7 @@ public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
     using Ptr = std::shared_ptr<CeresOptimizerICP>;
 
-    CeresOptimizerICP(const r64 loss_width = 5.5);
+    CeresOptimizerICP(const r64 loss_width = 0.05);
     void optimize(const i32 n_iteration, const i32 num_threads, const bool fullreport) override;
     void build_blocks_icp(const std::unordered_map<i32, ConnectionPoints>& pts3D,
                           const std::vector<MatchAdjacent>& ma, 

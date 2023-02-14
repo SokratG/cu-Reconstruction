@@ -37,7 +37,7 @@ find_package(Ceres REQUIRED)
 # boost
 find_package(Boost REQUIRED)
 # PCL
-find_package(PCL 1.10 REQUIRED)
+find_package(PCL 1.10 REQUIRED COMPONENTS common filters)
 # CudaSift
 # find_library(CUDA_SIFT 
 #             NAMES cudaSift

@@ -36,12 +36,12 @@ __global__ void point_cloud_extract(const cv::cuda::PtrStepSzf depth,
 
     const r64 fx = K[0][0];
     const r64 fy = K[1][1];
-    const r64 cx = K[0][2];
-    const r64 cy = K[1][2];
+    const r64 cx = K[2][0];
+    const r64 cy = K[2][1];
 
     point.pos = make_float3((r32(x) - cx) * depth_value / fx, 
-                            (r32(y) - cy) * depth_value / fy * -1.f,
-                            -1.f * depth_value);
+                            (r32(y) - cy) * depth_value / fy,
+                            depth_value);
 
     if (depth_value <= 0.0f) {
         point.color = make_uchar3(0, 0, 0);
@@ -49,6 +49,10 @@ __global__ void point_cloud_extract(const cv::cuda::PtrStepSzf depth,
     }
 
     point.pos = transform * point.pos;
+
+    // for opengl / meshlab
+    point.pos.y *= -1.f;
+    point.pos.z *= -1.f;
 
     if (useRGB) {
         const uchar3 rgb = ((uchar3*)color.ptr(y))[x];
@@ -61,10 +65,10 @@ __global__ void point_cloud_extract(const cv::cuda::PtrStepSzf depth,
 }
 
 
-cudaPointCloud::cudaPointCloud(const std::array<r64, 9>& camera_mat, const size_t total_number_pts) 
+cudaPointCloud::cudaPointCloud(const std::array<r64, 9>& camera_param, const size_t total_number_pts) 
                                 : device_pts(nullptr), hasRGB(false), num_pts(0)
 {
-    CUDA(cudaMemcpyToSymbol(K, camera_mat.data(), camera_mat.size() * sizeof(r64)));
+    camera_matrix = camera_param;
     const bool alloc_mem_res = reserve_memory(total_number_pts);
 
     if (!alloc_mem_res) {
@@ -85,6 +89,21 @@ cudaPointCloud::Ptr cudaPointCloud::create(const std::array<r64, 9>& camera_mat,
 }
 
 
+cudaPointCloud::Ptr cudaPointCloud::merge(const cudaPointCloud::Ptr pc1, const cudaPointCloud::Ptr pc2) {
+    const ui64 query_num_pts = pc1->get_num_points() + pc2->get_num_points();
+    cudaPointCloud::Ptr cuda_pc = cudaPointCloud::create(pc1->get_camera_parameters(), query_num_pts);
+    Vertex* cuda_pts = cuda_pc->get_points();
+
+    CUDA(cudaMemcpy(cuda_pts, pc1->get_points(), pc1->get_size(), cudaMemcpyDefault));
+
+    CUDA(cudaMemcpy(cuda_pts + pc1->get_num_points(), pc2->get_points(), pc2->get_size(), cudaMemcpyDefault));
+
+    cuda_pc->set_total_number_pts();
+
+    return cuda_pc;
+}
+
+
 void cudaPointCloud::clear() {
     if (device_pts != nullptr) {
         CUDA(cudaMemset(device_pts, 0, get_size()));
@@ -101,6 +120,9 @@ void cudaPointCloud::free() {
 }
 
 bool cudaPointCloud::reserve_memory(const ui64 query_number_points) {
+    if (query_number_points <= 0)
+        return true;
+
     if (query_number_points <= num_pts && device_pts != nullptr) {
         clear();
         return true;
@@ -149,6 +171,7 @@ bool cudaPointCloud::extract_points(const cv::cuda::PtrStepSzf depth,
 
     float4 quat = make_float4(T[1], T[2], T[3], T[0]);
     float3 trans = make_float3(T[4], T[5], T[6]);
+    CUDA(cudaMemcpyToSymbol(K, camera_matrix.data(), camera_matrix.size() * sizeof(r64)));
 
     if (hasRGB)
         point_cloud_extract<true><<<gridDim, blockDim>>>(depth, color, quat, trans, start_idx, device_pts);
@@ -167,6 +190,24 @@ bool cudaPointCloud::extract_points(const cv::cuda::PtrStepSzf depth,
     return true;
 }
 
+bool cudaPointCloud::add_vertex(const Vertex& v, const ui64 idx) {
+    if (idx >= total_num_pts) {
+        LogError(LOG_CUDA "cudaPointCloud::add_vertex() -- index out of range\n");
+        return false;
+    }
+    device_pts[idx] = v;
+    return true;
+}
+
+bool cudaPointCloud::add_vertex(const float3 pos, const uchar3 color, const ui64 idx) {
+    if (idx >= total_num_pts) {
+        LogError(LOG_CUDA "cudaPointCloud::add_vertex() -- index out of range\n");
+        return false;
+    }
+    device_pts[idx].pos = pos;
+    device_pts[idx].color = color;
+    return true;
+}
 
 void cudaPointCloud::filter_depth(const r32 depth_threshold) {
 
@@ -194,6 +235,27 @@ void cudaPointCloud::filter_depth(const r32 depth_threshold) {
 
     device_pts = filtered_pts;
     num_pts = filter_num_pts;
+}
+
+
+bool cudaPointCloud::add_point_cloud(const cudaPointCloud::Ptr cuda_pc) {
+    const i64 query_num_pts = cuda_pc->get_num_points() + num_pts;
+    const ui64 query_mem_size = query_num_pts * sizeof(Vertex);
+    Vertex* cuda_pts = nullptr;
+    if (CUDA_FAILED(cudaMallocManaged(&cuda_pts, query_mem_size, cudaMemAttachGlobal)))
+        return false;
+
+    CUDA(cudaMemcpy(cuda_pts, device_pts, get_size(), cudaMemcpyDefault));
+
+    CUDA(cudaMemcpy(cuda_pts + num_pts, cuda_pc->get_points(), cuda_pc->get_size(), cudaMemcpyDefault));
+
+    free();
+
+    device_pts = cuda_pts;
+    num_pts = query_num_pts;
+    total_num_pts = query_num_pts;
+
+    return true;
 }
 
 

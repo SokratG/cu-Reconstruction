@@ -186,7 +186,7 @@ void CeresOptimizerICP::reset() {
 
 
 void CeresOptimizerICP::add_block(CeresCameraModel& ceres_camera, const Vec3& src_pt, const Vec3& dst_pt) {
-    ceres::CostFunction* cost_f = ErrorICPPose::create(src_pt, dst_pt);
+    ceres::CostFunction* cost_f = ICPErrorPose::create(src_pt, dst_pt);
     ceres::LossFunction* loss_f = loss_width > 0 ? new ceres::CauchyLoss(loss_width) : nullptr;
     optim_problem->AddResidualBlock(cost_f, loss_f, ceres_camera.raw_camera_param);
 }

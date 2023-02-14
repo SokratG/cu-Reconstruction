@@ -39,23 +39,34 @@ void MultiViewSceneRGBD::reconstruct_scene() {
 
     estimate_motion();
 
+    build_and_stitch_point_cloud();
+}
+
+void MultiViewSceneRGBD::build_and_stitch_point_cloud() {
+    LOG(INFO) << "Build and filter point cloud from depth";
+
     const auto width = rgbd_frames.front()->depth->frame().cols;
     const auto height = rgbd_frames.front()->depth->frame().rows;
-    const size_t total_number_pts = rgbd_frames.size() * width * height;
-    
-    // cuda_pc = cudaPointCloud::create(K, total_number_pts);
 
+    std::vector<PointCloudCPtr> pcl_pc(rgbd_frames.size());
     for (auto idx = 0; idx < rgbd_frames.size(); ++idx) {
         const KeyFrame::Ptr depth = rgbd_frames.at(idx)->depth;
         const KeyFrame::Ptr rgb = rgbd_frames.at(idx)->rgb;
 
-        cudaPointCloud::Ptr tmp_cu_pc = pcl_to_cuda_pc(rgb, depth, camera);
-        
+        pcl_pc[idx] = build_point_cloud(rgb, depth, camera->K());
     }
-    
-    // cuda_pc->filter_depth(0.0f);
 
-    // statistical_filter_pc(cuda_pc);
+    std::array<r64, 9> K;
+    Vec9::Map(K.data()) = Eigen::Map<Vec9>(camera->K().data(), camera->K().cols() * camera->K().rows());
+    cuda_pc = cudaPointCloud::create(K, 0);
+
+    LOG(INFO) << "Stitch point clouds use ICP";
+    // TODO
+    for (auto idx = 0; idx < pcl_pc.size(); ++idx) {
+        //
+        // const auto tmp_cu_pc = pcl_to_cuda_pc(pcl_pc.at(idx), K);
+        // cuda_pc->add_point_cloud(tmp_cu_pc);
+    }
 }
 
 
@@ -114,11 +125,9 @@ void MultiViewSceneRGBD::estimate_motion() {
     std::unordered_map<i32, ConnectionPoints> conn_pts;
     build_visibility_connection_points(matching, rgb_frames, depth_frames, feat_pts, camera, conn_pts);
 
-    MotionEstimationICP::Ptr me_icp = std::make_shared<MotionEstimationICP>();
-    me_icp->estimate_motion(rgb_frames, matching, conn_pts);
-
     MotionEstimationOptimization::Ptr me_optim = std::make_shared<MotionEstimationOptimization>();
     me_optim->estimate_motion(rgb_frames, matching, conn_pts);
+
 
     for (auto i = 0; i < rgb_frames.size(); ++i) {
         rgbd_frames[i]->rgb->pose(rgb_frames[i]->pose());

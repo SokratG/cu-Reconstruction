@@ -29,7 +29,7 @@ public:
 		 * The class ID of the point.
 		 * @note will be 0 if classification data no provided
 		 */
-         ui16 classID;
+        ui16 classID = 0;
 
 	} __attribute__((packed));
 
@@ -39,6 +39,8 @@ public:
 	~cudaPointCloud();
 
 	static cudaPointCloud::Ptr create(const std::array<r64, 9>& camera_mat, const size_t total_number_pts);
+
+	static cudaPointCloud::Ptr merge(const cudaPointCloud::Ptr pc1, const cudaPointCloud::Ptr pc2);
 
 	inline ui64 get_total_num_points() const { return total_num_pts; }
 
@@ -50,7 +52,11 @@ public:
 
 	inline Vertex* get_points() const { return device_pts; }
 
-	inline void set_current_pts() {num_pts = total_num_pts;}
+	inline std::array<r64, 9> get_camera_parameters() { return camera_matrix; }
+
+	inline void set_total_number_pts() { num_pts = total_num_pts; }
+
+	bool add_point_cloud(const cudaPointCloud::Ptr cuda_pc);
 
 	bool extract_points(const cv::cuda::PtrStepSzf depth,
 						const cv::cuda::PtrStepb colors,
@@ -58,7 +64,8 @@ public:
 						const i32 frame_idx);
 
 	void filter_depth(const r32 depth_threshold);
-
+	bool add_vertex(const Vertex& v, const ui64 idx);
+	bool add_vertex(const float3 pos, const uchar3 color, const ui64 idx);
 	void clear();
 	void free();
 	bool save_ply(const std::string& filepath) const;
@@ -71,6 +78,7 @@ private:
 	Vertex* device_pts;
 	ui64 num_pts;
 	ui64 total_num_pts;
+	std::array<r64, 9> camera_matrix;
 	
 	bool hasRGB;
 };
