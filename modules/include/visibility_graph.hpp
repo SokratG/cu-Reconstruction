@@ -42,7 +42,7 @@ private:
 
 
 using VisibilityGraph = std::unordered_map<ui64, VisibilityNode::Ptr>;
-using ConnectionPoints = std::vector<std::pair<Vec3, Vec3>>;
+using ConnectionPoints = std::vector<std::pair<Landmark::Ptr, Landmark::Ptr>>;
 
 
 void build_landmarks_graph_triangluation(const std::vector<MatchAdjacent>& matching,

@@ -183,13 +183,17 @@ void build_visibility_connection_points(const std::vector<MatchAdjacent>& matchi
             const r64 y1 = (src_pt.y - K(1, 2)) * z1 / K(1, 1);
             Vec3 src_pt_world(x1, y1, z1);
 
+            Landmark::Ptr src_landmark = make_landmark(src_feat_pt, src_pt_world);
+
             const r64 z2 = depth.at(dst_idx).at<r32>(dst_pt);
             const r64 x2 = (dst_pt.x - K(0, 2)) * z2 / K(0, 0);
             const r64 y2 = (dst_pt.y - K(1, 2)) * z2 / K(1, 1);
             Vec3 dst_pt_world(x2, y2, z2);
 
+            Landmark::Ptr dst_landmark = make_landmark(dst_feat_pt, dst_pt_world);
+
             if (src_pt_world.z() > 1e-7 && dst_pt_world.z() > 1e-7) {
-                adj_pts.emplace_back(std::make_pair(src_pt_world, dst_pt_world));
+                adj_pts.emplace_back(std::make_pair(src_landmark, dst_landmark));
             }
         }
         if (!adj_pts.empty())

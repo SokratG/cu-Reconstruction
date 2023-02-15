@@ -112,8 +112,8 @@ void MotionEstimationICP::estimate_icp(const ConnectionPoints& pts, Mat3& R, Vec
     Vec3 center_p1, center_p2; // center mass
     const auto N = pts.size();
     for (auto i = 0; i < N; ++i) {
-        center_p1 += pts[i].first;
-        center_p2 += pts[i].second;
+        center_p1 += pts[i].first->pose();
+        center_p2 += pts[i].second->pose();
     }
 
     center_p1 = center_p1 / N;
@@ -122,8 +122,8 @@ void MotionEstimationICP::estimate_icp(const ConnectionPoints& pts, Mat3& R, Vec
     // remove the center - de-centroid coordinates
     std::vector<Vec3> q1(N), q2(N);
     for (auto i = 0; i < N; ++i) {
-        q1[i] = pts[i].first - center_p1;
-        q2[i] = pts[i].second - center_p2;
+        q1[i] = pts[i].first->pose() - center_p1;
+        q2[i] = pts[i].second->pose() - center_p2;
     }
 
     // q1∗q2^T

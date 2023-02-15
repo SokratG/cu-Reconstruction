@@ -43,7 +43,7 @@ void MultiViewSceneRGBD::reconstruct_scene() {
 }
 
 void MultiViewSceneRGBD::build_and_stitch_point_cloud() {
-    LOG(INFO) << "Build and filter point cloud from depth";
+    LOG(INFO) << "Filter point cloud from depth";
 
     const auto width = rgbd_frames.front()->depth->frame().cols;
     const auto height = rgbd_frames.front()->depth->frame().rows;
@@ -62,11 +62,9 @@ void MultiViewSceneRGBD::build_and_stitch_point_cloud() {
 
     LOG(INFO) << "Stitch point clouds use ICP";
     // TODO
-    for (auto idx = 0; idx < pcl_pc.size(); ++idx) {
-        //
-        // const auto tmp_cu_pc = pcl_to_cuda_pc(pcl_pc.at(idx), K);
-        // cuda_pc->add_point_cloud(tmp_cu_pc);
-    }
+    PointCloudCPtr total_pc = stitch_icp_point_clouds(pcl_pc);
+    const auto tmp_cu_pc = pcl_to_cuda_pc(total_pc, K);
+    cuda_pc->add_point_cloud(tmp_cu_pc);
 }
 
 

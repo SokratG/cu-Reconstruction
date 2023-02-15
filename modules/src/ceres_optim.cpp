@@ -171,8 +171,8 @@ void CeresOptimizerICP::build_blocks_icp(const std::unordered_map<i32, Connectio
         const i32 frame_id = adj.dst_idx;
         const auto& pts = pts3D.at(src_idx);
         for (const auto& pair_pt : pts) {
-            const auto src_pt = pair_pt.first;
-            const auto dst_pt = pair_pt.second;
+            const auto src_pt = pair_pt.first->pose();
+            const auto dst_pt = pair_pt.second->pose();
             add_block(ceres_cameras.at(frame_id), src_pt, dst_pt);
         }
     }

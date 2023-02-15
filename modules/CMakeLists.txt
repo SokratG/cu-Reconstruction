@@ -23,6 +23,7 @@ set(CMAKE_NVCC_FLAGS
 
 set(CMAKE_CUDA_FLAGS)
 
+set(boost_uuid_DIR /usr/local/boost/uuid)
 
 #opencv
 find_package(OpenCV REQUIRED)
@@ -35,15 +36,16 @@ find_package(Sophus REQUIRED)
 # ceres
 find_package(Ceres REQUIRED)
 # boost
-find_package(Boost REQUIRED)
+find_package(Boost 1.81 REQUIRED)
 # PCL
-find_package(PCL 1.10 REQUIRED COMPONENTS common filters)
+find_package(PCL 1.10 REQUIRED COMPONENTS common filters registration)
 # CudaSift
 # find_library(CUDA_SIFT 
 #             NAMES cudaSift
 #             PATHS ${CMAKE_BINARY_DIR}
 #             PATH_SUFFIXES 3dparty/CudaSift
 #             NO_DEFAULT_PATH)
+
 
 # includes
 include_directories("${PROJECT_SOURCE_DIR}/modules/include")

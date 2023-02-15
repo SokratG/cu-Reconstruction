@@ -1,8 +1,11 @@
 #include "point_cloud_utility.hpp"
 
-#include <pcl/filters/statistical_outlier_removal.h>
+#include <pcl/common/transforms.h>
 
-// #include <pcl/filters/voxel_grid.h>
+#include <pcl/filters/statistical_outlier_removal.h>
+#include <pcl/filters/voxel_grid.h>
+
+#include <pcl/registration/icp.h>
 
 #include <glog/logging.h>
 
@@ -10,8 +13,8 @@ namespace cuphoto {
 
 PointCloudCPtr statistical_filter_pc(const PointCloudCPtr current_pc, const StatisticalFilterConfig& sfc) {
     pcl::StatisticalOutlierRemoval<PointTC> statistical_filter;
-    statistical_filter.setMeanK(sfc.Kmean);
-    statistical_filter.setStddevMulThresh(sfc.StddevMulThresh);
+    statistical_filter.setMeanK(sfc.k_mean);
+    statistical_filter.setStddevMulThresh(sfc.std_dev_mul_thresh);
     statistical_filter.setInputCloud(current_pc);
 
     PointCloudCPtr filtered_pc(new PointCloudC);
@@ -21,9 +24,14 @@ PointCloudCPtr statistical_filter_pc(const PointCloudCPtr current_pc, const Stat
     return filtered_pc;
 }
 
-void voxel_filter_pc(cudaPointCloud::Ptr& cuda_pc) {
-    LOG(ERROR) << "IMPLEMENT HERE!";
-    return;
+PointCloudCPtr voxel_filter_pc(const PointCloudCPtr pcl_pc,
+                               const VoxelFilterConfig& vfc) {
+    pcl::VoxelGrid<PointTC> voxel_filter;
+    voxel_filter.setLeafSize(vfc.resolution, vfc.resolution, vfc.resolution);
+    voxel_filter.setInputCloud(pcl_pc);
+    PointCloudCPtr filtered_pc(new PointCloudC);
+    voxel_filter.filter(*filtered_pc);
+    return filtered_pc;
 }
 
 
@@ -85,10 +93,36 @@ cudaPointCloud::Ptr pcl_to_cuda_pc(const PointCloudCPtr pcl_pc,
 }
 
 
-void stitch_icp_point_cloud(const PointCloudCPtr pcl_pc_query, const PointCloudCPtr pcl_pc_target) {
+PointCloudCPtr stitch_icp_point_clouds(const std::vector<PointCloudCPtr>& pcl_pc,
+                                       const ICPCriteria& icp_criteria) {
     // TODO
-    LOG(ERROR) << "IMPLEMENT HERE!";
-    return;
+    const auto pcl_query = pcl_pc.front();
+    PointCloudCPtr filtered_pcl_pc_query = voxel_filter_pc(pcl_query);
+    PointCloudCPtr total_pc(new PointCloudC);
+    for (auto idx = 1; idx < pcl_pc.size(); ++idx) {
+        pcl::IterativeClosestPoint<PointTC, PointTC> icp;
+        const auto pcl_target = pcl_pc[idx];
+        const PointCloudCPtr filtered_pcl_pc_target = voxel_filter_pc(pcl_target);
+        icp.setInputSource(filtered_pcl_pc_query);
+        icp.setInputTarget(filtered_pcl_pc_target);
+        PointCloudC align_data;
+
+        // icp.setMaxCorrespondenceDistance(icp_criteria.max_correspond_dist);
+        // icp.setTransformationEpsilon(icp_criteria.transformation_eps);
+        // icp.setMaximumIterations(icp_criteria.max_iteration);
+
+        icp.align(align_data);
+
+        if (!icp.hasConverged()) {
+            LOG(WARNING) << "stitching ICP has not converged!";
+        }
+
+        (*filtered_pcl_pc_query) = align_data;
+        (*total_pc) += align_data;
+    }
+    
+    
+    return total_pc;
 }
 
 void stitch_feature_registration_point_cloud(const PointCloudCPtr pcl_pc_query, const PointCloudCPtr pcl_pc_target) {
@@ -96,5 +130,11 @@ void stitch_feature_registration_point_cloud(const PointCloudCPtr pcl_pc_query, 
     return;
 }
 
+
+PointCloudCPtr transform_point_cloud(const PointCloudCPtr pcl_pc, const SE3& T) {
+    PointCloudCPtr pcl_target(new PointCloudC);
+    pcl::transformPointCloud(*pcl_pc, *pcl_target, T.matrix());
+    return pcl_target;
+}
 
 };
