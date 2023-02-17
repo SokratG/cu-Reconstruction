@@ -17,7 +17,8 @@
 
 | Dense point cloud |
 :--------:|
-|![](gitresource/figure/table_point_cloud.png) |
+|![](gitresource/figures/table_point_cloud.png) |
+<b></b>
 
 ### TODO ...
 
@@ -47,6 +48,5 @@ cmake --build build -j $(nproc)
 * [Gflags 2.2.1](https://github.com/gflags/gflags)
 * [Ceres-Solver](http://ceres-solver.org/)
 * [Sophus](https://github.com/strasdat/Sophus)
-* [Pangolin](https://github.com/stevenlovegrove/Pangolin)
 * [CudaSift](https://github.com/Celebrandil/CudaSift)
 
