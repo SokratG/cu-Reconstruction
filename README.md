@@ -1,5 +1,7 @@
 ## Cuda Photogrammetry
 
+### TODO: add description...
+
 ### Structure from motion
 1 | 2 | 3 |
 :------:|:-------:|:------:|
@@ -20,9 +22,13 @@
 |![](gitresource/figures/table_point_cloud.png) |
 <b></b>
 
-### TODO ...
+### TODO Features:
+* add Point cloud stitching
+* add TensoRT monodepth
+* add Surface reconstruction(Surfels, Cuda TSDF, Cuda Poission)
+* add Disparity estimation(OpenCV SGBM, Implement cuda Patch Matching)
+* add Single view reconstruction(TensorRT)
 
-### TODO: add description
 
 
 ### Build project
