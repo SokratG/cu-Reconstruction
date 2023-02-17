@@ -46,7 +46,7 @@ private:
 class UUID 
 {
 public:
-    static boost::uuids::random_generator gen;
+    static uuid gen();
 };
 
 

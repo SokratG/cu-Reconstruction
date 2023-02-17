@@ -62,9 +62,11 @@ void MultiViewSceneRGBD::build_and_stitch_point_cloud() {
 
     LOG(INFO) << "Stitch point clouds use ICP";
     // TODO
-    PointCloudCPtr total_pc = stitch_icp_point_clouds(pcl_pc);
-    const auto tmp_cu_pc = pcl_to_cuda_pc(total_pc, K);
-    cuda_pc->add_point_cloud(tmp_cu_pc);
+    // PointCloudCPtr total_pc = stitch_icp_point_clouds(pcl_pc);
+    PointCloudCPtr total_pc = stitch_feature_registration_point_cloud(pcl_pc);
+    
+    // const auto tmp_cu_pc = pcl_to_cuda_pc(total_pc, K);
+    //cuda_pc->add_point_cloud(tmp_cu_pc);
 }
 
 

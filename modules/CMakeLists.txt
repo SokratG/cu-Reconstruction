@@ -36,9 +36,9 @@ find_package(Sophus REQUIRED)
 # ceres
 find_package(Ceres REQUIRED)
 # boost
-find_package(Boost 1.81 REQUIRED)
+find_package(Boost REQUIRED)
 # PCL
-find_package(PCL 1.10 REQUIRED COMPONENTS common filters registration)
+find_package(PCL 1.8 REQUIRED COMPONENTS common filters registration keypoints features)
 # CudaSift
 # find_library(CUDA_SIFT 
 #             NAMES cudaSift

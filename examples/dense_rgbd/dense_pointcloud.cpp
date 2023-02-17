@@ -22,7 +22,7 @@ int main(int argc, char* argv[]) {
     }
     try {
         mvs.reconstruct_scene();
-        mvs.store_to_ply("dense_rgbd_point_cloud.ply");
+        // mvs.store_to_ply("dense_rgbd_point_cloud.ply");
     } catch(cuphoto::CuPhotoException& photo_ex) {
         LOG(ERROR) << photo_ex.what();
         return EXIT_FAILURE;

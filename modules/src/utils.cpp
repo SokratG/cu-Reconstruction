@@ -9,6 +9,11 @@
 
 namespace cuphoto {
 
+static boost::uuids::random_generator uuid_generator;
+
+uuid UUID::gen() {
+    return uuid_generator();
+}
 
 static void camera_to_center(const r64* camera,
                              r64* center) {

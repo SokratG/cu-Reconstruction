@@ -4,12 +4,36 @@
 
 #include <pcl/filters/statistical_outlier_removal.h>
 #include <pcl/filters/voxel_grid.h>
+#include <pcl/filters/extract_indices.h>
+
+#include <pcl/keypoints/sift_keypoint.h>
+
+#include <pcl/features/3dsc.h>
+#include <pcl/features/fpfh_omp.h>
+#include <pcl/features/normal_3d_omp.h>
 
 #include <pcl/registration/icp.h>
+#include <pcl/registration/correspondence_estimation.h>
+#include <pcl/registration/correspondence_rejection_sample_consensus.h>
+#include <pcl/registration/transformation_estimation_svd.h>
+
+#include <memory>
+#include <cmath>
 
 #include <glog/logging.h>
 
 namespace cuphoto {
+
+
+struct PCLMatchAdjacent {
+    i32 src_idx;
+    i32 dst_idx;
+    std::vector<i32> correspondences;
+    PCLMatchAdjacent() = delete;
+    PCLMatchAdjacent(const i32 _src_idx) : src_idx(_src_idx), dst_idx(-1) {}
+};
+
+
 
 PointCloudCPtr statistical_filter_pc(const PointCloudCPtr current_pc, const StatisticalFilterConfig& sfc) {
     pcl::StatisticalOutlierRemoval<PointTC> statistical_filter;
@@ -95,7 +119,6 @@ cudaPointCloud::Ptr pcl_to_cuda_pc(const PointCloudCPtr pcl_pc,
 
 PointCloudCPtr stitch_icp_point_clouds(const std::vector<PointCloudCPtr>& pcl_pc,
                                        const ICPCriteria& icp_criteria) {
-    // TODO
     const auto pcl_query = pcl_pc.front();
     PointCloudCPtr filtered_pcl_pc_query = voxel_filter_pc(pcl_query);
     PointCloudCPtr total_pc(new PointCloudC);
@@ -107,9 +130,9 @@ PointCloudCPtr stitch_icp_point_clouds(const std::vector<PointCloudCPtr>& pcl_pc
         icp.setInputTarget(filtered_pcl_pc_target);
         PointCloudC align_data;
 
-        // icp.setMaxCorrespondenceDistance(icp_criteria.max_correspond_dist);
-        // icp.setTransformationEpsilon(icp_criteria.transformation_eps);
-        // icp.setMaximumIterations(icp_criteria.max_iteration);
+        icp.setMaxCorrespondenceDistance(icp_criteria.max_correspond_dist);
+        icp.setTransformationEpsilon(icp_criteria.transformation_eps);
+        icp.setMaximumIterations(icp_criteria.max_iteration);
 
         icp.align(align_data);
 
@@ -125,9 +148,109 @@ PointCloudCPtr stitch_icp_point_clouds(const std::vector<PointCloudCPtr>& pcl_pc
     return total_pc;
 }
 
-void stitch_feature_registration_point_cloud(const PointCloudCPtr pcl_pc_query, const PointCloudCPtr pcl_pc_target) {
-    LOG(ERROR) << "IMPLEMENT HERE!";
-    return;
+PointCloudCPtr stitch_feature_registration_point_cloud(const std::vector<PointCloudCPtr>& pcl_pc,
+                                                       const PCLSiftConfig& pcl_sift_cfg,
+                                                       const PCLDescriptorConfig& pcl_desc_cfg) {
+    PointCloudCPtr total_pc(new PointCloudC);
+
+    // voxel fitler
+    std::vector<PointCloudCPtr> filtered_pcl_pc(pcl_pc.size());
+    std::vector<pcl::PointCloud<pcl::Normal>::Ptr> filtered_normals(pcl_pc.size());
+    for (auto idx = 0; idx < pcl_pc.size(); ++idx) {
+        filtered_pcl_pc[idx] = voxel_filter_pc(pcl_pc.at(idx));
+        pcl::NormalEstimationOMP<PointTC, pcl::Normal> normal_estimation;
+        normal_estimation.setSearchMethod(pcl::search::Search<PointTC>::Ptr(new pcl::search::KdTree<PointTC>));
+        normal_estimation.setRadiusSearch(pcl_desc_cfg.normal_radius_search);
+        normal_estimation.setInputCloud(filtered_pcl_pc.at(idx));
+
+        pcl::PointCloud<pcl::Normal>::Ptr normals(new pcl::PointCloud<pcl::Normal>);
+        normal_estimation.compute(*normals);
+        PointCloudCPtr filter_pc(new PointCloudC);
+        pcl::PointCloud<pcl::Normal>::Ptr filter_normals(new pcl::PointCloud<pcl::Normal>);
+        pcl::PointIndices::Ptr pt_inds(new pcl::PointIndices());
+        pcl::removeNaNNormalsFromPointCloud(*normals, *filter_normals, pt_inds->indices);
+        pcl::ExtractIndices<PointTC> extract;
+        extract.setInputCloud(filtered_pcl_pc.at(idx));
+        extract.setIndices(pt_inds);
+        extract.filter(*filter_pc);
+
+        filtered_pcl_pc[idx] = filter_pc;
+        filtered_normals[idx] = filter_normals;
+    }
+
+
+    // keypoint detection
+    pcl::SIFTKeypoint<PointTC, PointTC> sift;
+    sift.setScales(pcl_sift_cfg.min_scale, pcl_sift_cfg.n_octaves, pcl_sift_cfg.n_scales_per_octave);
+    sift.setMinimumContrast(pcl_sift_cfg.min_contrast);
+    std::vector<PointCloudCPtr> keypoints;
+    for (auto idx = 0; idx < filtered_pcl_pc.size(); ++idx) {
+        PointCloudCPtr result(new PointCloudC);
+        pcl::search::KdTree<PointTC>::Ptr tree(new pcl::search::KdTree<PointTC>);
+        sift.setSearchMethod(tree);
+        sift.setInputCloud(filtered_pcl_pc.at(idx));
+        sift.compute(*result);
+        keypoints.emplace_back(result);
+    }
+
+    // descriptor extraction
+    pcl::FPFHEstimationOMP<PointTC, pcl::Normal, pcl::FPFHSignature33> feature_extractor;
+    feature_extractor.setRadiusSearch(pcl_desc_cfg.feature_radius_search);
+    std::vector<pcl::PointCloud<pcl::FPFHSignature33>::Ptr> features; 
+    for (auto idx = 0; idx < keypoints.size(); ++idx) {
+        feature_extractor.setSearchMethod(pcl::search::Search<PointTC>::Ptr(new pcl::search::KdTree<PointTC>));
+        feature_extractor.setSearchSurface(filtered_pcl_pc.at(idx));
+        feature_extractor.setInputCloud(keypoints.at(idx));
+        feature_extractor.setInputNormals(filtered_normals.at(idx));
+        pcl::PointCloud<pcl::FPFHSignature33>::Ptr feature(new pcl::PointCloud<pcl::FPFHSignature33>);
+        feature_extractor.compute(*feature);
+        features.emplace_back(feature);
+    }
+
+    for (auto idx = 0; idx < features.size(); ++idx) {
+        PointCloudCPtr kpts(new PointCloudC());
+        pcl::PointCloud<pcl::FPFHSignature33>::Ptr feature(new pcl::PointCloud<pcl::FPFHSignature33>());
+        for (auto i = 0; i < features.at(idx)->size(); i++) {
+            if (!std::isnan(features.at(idx)->points[i].histogram[0])) {
+                kpts->points.push_back(keypoints.at(idx)->points[i]);
+                feature->points.push_back(features.at(idx)->points[i]);
+            }
+        }
+        keypoints[idx] = kpts;
+        features[idx] = feature;
+    }
+    
+    // find correspondences
+    std::vector<pcl::CorrespondencesPtr> correspondences;
+    for (auto i = 0, j = 1; i < features.size() - 1; ++i, ++j) {
+        const pcl::PointCloud<pcl::FPFHSignature33>::Ptr source = features.at(i);
+        const pcl::PointCloud<pcl::FPFHSignature33>::Ptr target = features.at(j);
+        pcl::registration::CorrespondenceEstimation<pcl::FPFHSignature33, pcl::FPFHSignature33> estimator_corr;
+        estimator_corr.setInputSource(source);
+        estimator_corr.setInputTarget(target);
+        pcl::CorrespondencesPtr match_correspondences(new pcl::Correspondences());
+        estimator_corr.determineReciprocalCorrespondences(*match_correspondences);
+        correspondences.emplace_back(match_correspondences);
+    }
+
+    // filter correspondences
+    pcl::registration::CorrespondenceRejectorSampleConsensus<PointTC> rejector;
+    rejector.setInlierThreshold(pcl_desc_cfg.inlier_threshold);
+    for (auto i = 0, j = 1; i < keypoints.size() - 1; ++i, ++j) {
+        const auto source = keypoints.at(i);
+        const auto target = keypoints.at(j);
+        rejector.setInputSource(source);
+        rejector.setInputTarget(target);
+        rejector.setInputCorrespondences(correspondences.at(i));
+        pcl::CorrespondencesPtr good_correspondences(new pcl::Correspondences());
+        rejector.getCorrespondences(*good_correspondences);
+        correspondences[i] = good_correspondences;
+    }
+
+    // TransformationEstimationSVD<PointTC, PointTC> trans_est;
+    // trans_est.estimateRigidTransformation (*keypoints_src, *keypoints_tgt, *good_correspondences, transform);
+
+    return total_pc;
 }
 
 

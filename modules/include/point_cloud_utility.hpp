@@ -15,6 +15,7 @@ namespace cuphoto {
 
 // PCL
 using PointT = pcl::PointXYZ;
+using PointTI = pcl::PointXYZI;
 using PointTC = pcl::PointXYZRGB;
 using PointCloud = pcl::PointCloud<PointT>;
 using PointCloudPtr = pcl::PointCloud<PointT>::Ptr;
@@ -41,6 +42,22 @@ struct ICPCriteria
     i32 max_iteration = 10;
 };
 
+struct PCLSiftConfig
+{
+    r32 min_scale = 0.1f;
+    i32 n_octaves = 6;
+    i32 n_scales_per_octave = 10;
+    r32 min_contrast = 0.5f;
+};
+
+struct PCLDescriptorConfig
+{
+    r32 normal_radius_search = 0.05;
+    r32 feature_radius_search = 0.1;
+    i32 inlier_size = 200;
+    r32 inlier_threshold = 0.2;
+};
+
 
 PointCloudCPtr voxel_filter_pc(const PointCloudCPtr pcl_pc,
                                const VoxelFilterConfig& vfc = VoxelFilterConfig());
@@ -49,7 +66,9 @@ PointCloudCPtr voxel_filter_pc(const PointCloudCPtr pcl_pc,
 PointCloudCPtr stitch_icp_point_clouds(const std::vector<PointCloudCPtr>& pcl_pc,
                                       const ICPCriteria& icp_criteria = ICPCriteria());
 
-void stitch_feature_registration_point_cloud(const PointCloudCPtr pcl_pc_query, const PointCloudCPtr pcl_pc_target);
+PointCloudCPtr stitch_feature_registration_point_cloud(const std::vector<PointCloudCPtr>& pcl_pc,
+                                                       const PCLSiftConfig& pcl_sift_cfg = PCLSiftConfig(),
+                                                       const PCLDescriptorConfig& pcl_desc_cfg = PCLDescriptorConfig());
 
 PointCloudCPtr build_point_cloud(const KeyFrame::Ptr rgb, 
                                  const KeyFrame::Ptr depth, 
