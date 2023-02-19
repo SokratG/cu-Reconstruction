@@ -22,7 +22,7 @@ enum class FeatureMatcherBackend {
 
 // TODO: add config from file
 struct MatcherConfig {
-    r32 ratio_threshold = 0.8;
+    r32 ratio_threshold = 0.85;
     i32 k_nn = 2;
     r64 prob = 0.9;
     r64 threshold = 2.5;
