@@ -16,13 +16,13 @@ int main(int argc, char* argv[]) {
 
     cuphoto::RGBDDataset rgbd_dataset(FLAGS_dir_path, 0.001);
     cuphoto::MultiViewSceneRGBD mvs(kinect_rgb, kinect_depth);
-    for (auto i = 0; i < 5; ++i) {
+    for (auto i = 0; i < 10; ++i) {
         auto [rgb, depth] = rgbd_dataset.get_next();
         mvs.add_frame(rgb, depth);
     }
     try {
         mvs.reconstruct_scene();
-        // mvs.store_to_ply("dense_rgbd_point_cloud.ply");
+        mvs.store_to_ply("dense_rgbd_point_cloud.ply");
     } catch(cuphoto::CuPhotoException& photo_ex) {
         LOG(ERROR) << photo_ex.what();
         return EXIT_FAILURE;

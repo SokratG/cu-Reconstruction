@@ -8,14 +8,15 @@
 
 #include <pcl/keypoints/sift_keypoint.h>
 
-#include <pcl/features/3dsc.h>
 #include <pcl/features/fpfh_omp.h>
 #include <pcl/features/normal_3d_omp.h>
 
 #include <pcl/registration/icp.h>
+#include <pcl/registration/icp_nl.h>
 #include <pcl/registration/correspondence_estimation.h>
 #include <pcl/registration/correspondence_rejection_sample_consensus.h>
 #include <pcl/registration/transformation_estimation_svd.h>
+#include <pcl/registration/transformation_estimation_lm.h>
 
 #include <memory>
 #include <cmath>
@@ -58,6 +59,16 @@ PointCloudCPtr voxel_filter_pc(const PointCloudCPtr pcl_pc,
     return filtered_pc;
 }
 
+PointCloudCNPtr voxel_filter_pc(const PointCloudCNPtr pcl_pc,
+                               const VoxelFilterConfig& vfc) {
+    pcl::VoxelGrid<PointTCN> voxel_filter;
+    voxel_filter.setLeafSize(vfc.resolution, vfc.resolution, vfc.resolution);
+    voxel_filter.setInputCloud(pcl_pc);
+    PointCloudCNPtr filtered_pc(new PointCloudCN);
+    voxel_filter.filter(*filtered_pc);
+    return filtered_pc;
+}
+
 
 PointCloudCPtr build_point_cloud(const KeyFrame::Ptr rgb, 
                                  const KeyFrame::Ptr depth, 
@@ -77,7 +88,7 @@ PointCloudCPtr build_point_cloud(const KeyFrame::Ptr rgb,
     for (auto v = 0; v < height; ++v) {
         for (auto u = 0; u < width; ++u) {
             const r32 d = depth_frame.ptr<r32>(v)[u];
-            if (d <= sfc.depth_threshold)
+            if (d <= sfc.depth_threshold_min || d >= sfc.depth_threshold_max)
                 continue;
             Vec3 point;
             point[2] = static_cast<r64>(d);
@@ -151,8 +162,6 @@ PointCloudCPtr stitch_icp_point_clouds(const std::vector<PointCloudCPtr>& pcl_pc
 PointCloudCPtr stitch_feature_registration_point_cloud(const std::vector<PointCloudCPtr>& pcl_pc,
                                                        const PCLSiftConfig& pcl_sift_cfg,
                                                        const PCLDescriptorConfig& pcl_desc_cfg) {
-    PointCloudCPtr total_pc(new PointCloudC);
-
     // voxel fitler
     std::vector<PointCloudCPtr> filtered_pcl_pc(pcl_pc.size());
     std::vector<pcl::PointCloud<pcl::Normal>::Ptr> filtered_normals(pcl_pc.size());
@@ -243,14 +252,71 @@ PointCloudCPtr stitch_feature_registration_point_cloud(const std::vector<PointCl
         rejector.setInputTarget(target);
         rejector.setInputCorrespondences(correspondences.at(i));
         pcl::CorrespondencesPtr good_correspondences(new pcl::Correspondences());
+        rejector.getRemainingCorrespondences(*correspondences.at(i), *good_correspondences);
         rejector.getCorrespondences(*good_correspondences);
         correspondences[i] = good_correspondences;
     }
 
-    // TransformationEstimationSVD<PointTC, PointTC> trans_est;
-    // trans_est.estimateRigidTransformation (*keypoints_src, *keypoints_tgt, *good_correspondences, transform);
+    pcl::registration::TransformationEstimationSVD<PointTC, PointTC> trans_est;
+    std::vector<Mat4f> transforms;
+    for (auto i = 0, j = 1; i < keypoints.size() - 1; ++i, ++j) {
+        Mat4f transform;
+        const auto source = keypoints.at(i);
+        const auto target = keypoints.at(j);
+        LOG(ERROR) << correspondences.at(i)->size();
+        trans_est.estimateRigidTransformation(*source, *target, *correspondences.at(i), transform);
+        transforms.emplace_back(transform);
+    }
+
+    
+    
+    pcl::IterativeClosestPoint<PointTC, PointTC> icp;
+    icp.setMaxCorrespondenceDistance(0.7);
+    icp.setTransformationEpsilon(1e-6);
+    icp.setMaximumIterations(50);
+
+    auto source_pc = filtered_pcl_pc.front();
+    PointCloudCPtr align_data(new PointCloudC);
+    LOG(ERROR) << "icp transform calc";
+    VoxelFilterConfig vfc_icp;
+    vfc_icp.resolution = 0.07;
+    for (auto idx = 0; idx < transforms.size(); ++idx) {
+        icp.setInputSource(source_pc);
+        const auto target_pc = filtered_pcl_pc.at(idx + 1);
+        icp.setInputTarget(target_pc);
+        
+        icp.align(*align_data, transforms.at(idx));
+
+        transforms.at(idx) = icp.getFinalTransformation();
+
+        source_pc = align_data;
+        (*source_pc) += *target_pc;
+        source_pc = voxel_filter_pc(source_pc, vfc_icp);
+    }
+
+    
+    PointCloudCPtr total_pc(new PointCloudC);
+    total_pc = pcl_pc.front();
+    LOG(ERROR) << "concat point cloud";
+    for (auto idx = 0; idx < transforms.size(); ++idx) {
+        Mat4 T = transforms.at(idx).cast<r64>();
+        total_pc = transform_point_cloud(total_pc, T);
+        (*total_pc) += *pcl_pc.at(idx + 1);
+    }
+
+    StatisticalFilterConfig sfc;
+    VoxelFilterConfig vfc_total;
+    vfc_total.resolution = 0.08;
+    total_pc = voxel_filter_pc(total_pc, vfc_total);
+    total_pc = statistical_filter_pc(total_pc, sfc);
 
     return total_pc;
+}
+
+PointCloudCPtr transform_point_cloud(const PointCloudCPtr pcl_pc, const Mat4& T) {
+    PointCloudCPtr pcl_target(new PointCloudC);
+    pcl::transformPointCloud(*pcl_pc, *pcl_target, T);
+    return pcl_target;
 }
 
 
@@ -259,5 +325,18 @@ PointCloudCPtr transform_point_cloud(const PointCloudCPtr pcl_pc, const SE3& T) 
     pcl::transformPointCloud(*pcl_pc, *pcl_target, T.matrix());
     return pcl_target;
 }
+
+PointCloudCNPtr transform_point_cloud(const PointCloudCNPtr pcl_pc, const Mat4& T) {
+    PointCloudCNPtr pcl_target(new PointCloudCN);
+    pcl::transformPointCloud(*pcl_pc, *pcl_target, T);
+    return pcl_target;
+}
+
+PointCloudCNPtr transform_point_cloud(const PointCloudCNPtr pcl_pc, const SE3& T) {
+    PointCloudCNPtr pcl_target(new PointCloudCN);
+    pcl::transformPointCloud(*pcl_pc, *pcl_target, T.matrix());
+    return pcl_target;
+}
+
 
 };

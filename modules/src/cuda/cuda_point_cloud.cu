@@ -209,11 +209,11 @@ bool cudaPointCloud::add_vertex(const float3 pos, const uchar3 color, const ui64
     return true;
 }
 
-void cudaPointCloud::filter_depth(const r32 depth_threshold) {
+void cudaPointCloud::filter_depth(const r32 depth_threshold_min, const r32 depth_threshold_max) {
 
     const ui64 filter_num_pts = std::accumulate(device_pts, device_pts + num_pts, (ui64)0, 
         [&](const i64 filter_num, const Vertex& v) {
-            if (v.pos.z < depth_threshold)
+            if (v.pos.z <= depth_threshold_min || v.pos.z >= depth_threshold_max)
                 return filter_num + 1;
             return filter_num;
     });
@@ -226,7 +226,7 @@ void cudaPointCloud::filter_depth(const r32 depth_threshold) {
     }
 
     for (i64 s_idx = 0, t_idx = 0; s_idx < num_pts; ++s_idx) {
-        if (device_pts[s_idx].pos.z >= depth_threshold)
+        if (device_pts[s_idx].pos.z > depth_threshold_min && device_pts[s_idx].pos.z < depth_threshold_max)
             continue;
         filtered_pts[t_idx] = device_pts[s_idx];
         t_idx += 1;

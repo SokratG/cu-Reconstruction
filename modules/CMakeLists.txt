@@ -23,8 +23,6 @@ set(CMAKE_NVCC_FLAGS
 
 set(CMAKE_CUDA_FLAGS)
 
-set(boost_uuid_DIR /usr/local/boost/uuid)
-
 #opencv
 find_package(OpenCV REQUIRED)
 # eigen

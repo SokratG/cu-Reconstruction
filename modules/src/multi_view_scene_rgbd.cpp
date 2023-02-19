@@ -43,17 +43,19 @@ void MultiViewSceneRGBD::reconstruct_scene() {
 }
 
 void MultiViewSceneRGBD::build_and_stitch_point_cloud() {
-    LOG(INFO) << "Filter point cloud from depth";
+    LOG(INFO) << "Build point cloud from depth";
 
     const auto width = rgbd_frames.front()->depth->frame().cols;
     const auto height = rgbd_frames.front()->depth->frame().rows;
-
+    StatisticalFilterConfig sfc;
+    sfc.depth_threshold_min = 1e-8;
+    sfc.depth_threshold_max = 22.0;
     std::vector<PointCloudCPtr> pcl_pc(rgbd_frames.size());
     for (auto idx = 0; idx < rgbd_frames.size(); ++idx) {
         const KeyFrame::Ptr depth = rgbd_frames.at(idx)->depth;
         const KeyFrame::Ptr rgb = rgbd_frames.at(idx)->rgb;
 
-        pcl_pc[idx] = build_point_cloud(rgb, depth, camera->K());
+        pcl_pc[idx] = build_point_cloud(rgb, depth, camera->K(), sfc);
     }
 
     std::array<r64, 9> K;
@@ -65,8 +67,8 @@ void MultiViewSceneRGBD::build_and_stitch_point_cloud() {
     // PointCloudCPtr total_pc = stitch_icp_point_clouds(pcl_pc);
     PointCloudCPtr total_pc = stitch_feature_registration_point_cloud(pcl_pc);
     
-    // const auto tmp_cu_pc = pcl_to_cuda_pc(total_pc, K);
-    //cuda_pc->add_point_cloud(tmp_cu_pc);
+    const auto tmp_cu_pc = pcl_to_cuda_pc(total_pc, K);
+    cuda_pc->add_point_cloud(tmp_cu_pc);
 }
 
 

@@ -7,6 +7,7 @@
 
 #include <memory>
 #include <array>
+#include <limits>
 
 namespace cuphoto {
 
@@ -63,7 +64,8 @@ public:
 						const std::array<r64, 7>& transform,
 						const i32 frame_idx);
 
-	void filter_depth(const r32 depth_threshold);
+	void filter_depth(const r32 depth_threshold_min = std::numeric_limits<r32>::min(), 
+					  const r32 depth_threshold_max = std::numeric_limits<r32>::max());
 	bool add_vertex(const Vertex& v, const ui64 idx);
 	bool add_vertex(const float3 pos, const uchar3 color, const ui64 idx);
 	void clear();
