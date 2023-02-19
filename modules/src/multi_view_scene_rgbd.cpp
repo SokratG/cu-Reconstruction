@@ -3,10 +3,10 @@
 #include "motion_estimation.hpp"
 
 #include "cp_exception.hpp"
+#include "point_cloud_stitcher.hpp"
 #include "point_cloud_utility.hpp"
 
 #include <glog/logging.h>
-
 
 
 namespace cuphoto {
@@ -39,23 +39,23 @@ void MultiViewSceneRGBD::reconstruct_scene() {
 
     estimate_motion();
 
-    build_and_stitch_point_cloud();
+    build_point_cloud();
 }
 
-void MultiViewSceneRGBD::build_and_stitch_point_cloud() {
+void MultiViewSceneRGBD::build_point_cloud() {
     LOG(INFO) << "Build point cloud from depth";
 
     const auto width = rgbd_frames.front()->depth->frame().cols;
     const auto height = rgbd_frames.front()->depth->frame().rows;
-    StatisticalFilterConfig sfc;
-    sfc.depth_threshold_min = 1e-8;
-    sfc.depth_threshold_max = 22.0;
+    const auto depth_threshold_min = 1e-5;
+    const auto depth_threshold_max = 23.5;
     std::vector<PointCloudCPtr> pcl_pc(rgbd_frames.size());
     for (auto idx = 0; idx < rgbd_frames.size(); ++idx) {
         const KeyFrame::Ptr depth = rgbd_frames.at(idx)->depth;
         const KeyFrame::Ptr rgb = rgbd_frames.at(idx)->rgb;
 
-        pcl_pc[idx] = build_point_cloud(rgb, depth, camera->K(), sfc);
+        pcl_pc[idx] = point_cloud_from_depth(rgb, depth, camera->K(), depth_threshold_min, depth_threshold_max);
+        pcl_pc[idx] = statistical_filter_pc(pcl_pc[idx]);
     }
 
     std::array<r64, 9> K;
@@ -63,10 +63,15 @@ void MultiViewSceneRGBD::build_and_stitch_point_cloud() {
     cuda_pc = cudaPointCloud::create(K, 0);
 
     LOG(INFO) << "Stitch point clouds use ICP";
-    // TODO
-    // PointCloudCPtr total_pc = stitch_icp_point_clouds(pcl_pc);
-    PointCloudCPtr total_pc = stitch_feature_registration_point_cloud(pcl_pc);
     
+    PointCloudStitcher pc_stitcher;
+    std::vector<Mat4> transforms;
+    auto total_pc = pc_stitcher.stitch(pcl_pc, transforms);
+    total_pc = statistical_filter_pc(total_pc);
+    VoxelFilterConfig vfc;
+    vfc.resolution = 0.03;
+    total_pc = voxel_filter_pc(total_pc, vfc);
+
     const auto tmp_cu_pc = pcl_to_cuda_pc(total_pc, K);
     cuda_pc->add_point_cloud(tmp_cu_pc);
 }

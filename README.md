@@ -22,12 +22,11 @@
 |![](gitresource/figures/table_point_cloud.png) |
 <b></b>
 
+
 ### TODO Features:
-* add Point cloud stitching
 * add TensoRT monodepth
 * add Surface reconstruction(Surfels, Cuda TSDF, Cuda Poission)
-* add Disparity estimation(OpenCV SGBM, Implement cuda Patch Matching)
-* add Single view reconstruction(TensorRT)
+* add Disparity estimation(OpenCV SGBM, cuda Patch Matching)
 
 
 
@@ -54,5 +53,5 @@ cmake --build build -j $(nproc)
 * [Gflags 2.2.1](https://github.com/gflags/gflags)
 * [Ceres-Solver](http://ceres-solver.org/)
 * [Sophus](https://github.com/strasdat/Sophus)
-* [CudaSift](https://github.com/Celebrandil/CudaSift)
+* [CudaSift](https://github.com/SokratG/CudaSift/tree/fix-cmake)
 

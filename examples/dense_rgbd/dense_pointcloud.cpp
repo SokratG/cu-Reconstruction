@@ -7,6 +7,8 @@
 
 
 DEFINE_string(dir_path, "./data/dataset/rgbd/scene01", "dataset file path");
+constexpr int N = 4;
+
 
 int main(int argc, char* argv[]) {
     google::ParseCommandLineFlags(&argc, &argv, true);
@@ -16,7 +18,7 @@ int main(int argc, char* argv[]) {
 
     cuphoto::RGBDDataset rgbd_dataset(FLAGS_dir_path, 0.001);
     cuphoto::MultiViewSceneRGBD mvs(kinect_rgb, kinect_depth);
-    for (auto i = 0; i < 10; ++i) {
+    for (auto i = 0; i < N; ++i) {
         auto [rgb, depth] = rgbd_dataset.get_next();
         mvs.add_frame(rgb, depth);
     }

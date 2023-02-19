@@ -33,7 +33,7 @@ protected:
     void filter_outlier_frames(std::vector<std::vector<Feature::Ptr>>& feat_pts,
                                std::vector<cv::cuda::GpuMat>& descriptors);
     virtual void estimate_motion();
-    void build_and_stitch_point_cloud();
+    void build_point_cloud();
 
 private:
     std::vector<RGBD::Ptr> rgbd_frames;
