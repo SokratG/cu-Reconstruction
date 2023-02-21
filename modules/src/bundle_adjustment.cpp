@@ -5,18 +5,20 @@
 namespace cuphoto {
 
 BundleAdjustment::BundleAdjustment(const OptimizerType opt_type,
-                                   const TypeReprojectionError type_err) {
-    optimizer = get_optimizer(opt_type, type_err);
+                                   const TypeReprojectionError type_err,
+                                   const Config& cfg) {
+    optimizer = get_optimizer(opt_type, type_err, cfg);
 }
 
 Optimizer::Ptr BundleAdjustment::get_optimizer(const OptimizerType opt_type,
-                                               const TypeReprojectionError type_err) const {
+                                               const TypeReprojectionError type_err,
+                                               const Config& cfg) const {
     switch (opt_type) 
     {
         case OptimizerType::BA_CERES:
-            return std::make_shared<CeresOptimizerReprojection>(type_err);
+            return std::make_shared<CeresOptimizerReprojection>(type_err, cfg);
         case OptimizerType::BA_CERES_ICP:
-            return std::make_shared<CeresOptimizerICP>();
+            return std::make_shared<CeresOptimizerICP>(cfg);
         default:
             throw CuPhotoException("Error: Unknown type of optimization!");
     }
@@ -41,15 +43,21 @@ void BundleAdjustment::build_problem(const std::unordered_map<i32, ConnectionPoi
 
 void BundleAdjustment::solve(std::vector<Landmark::Ptr>& landmarks, 
                              std::vector<KeyFrame::Ptr>& frames,
-                             const BAParam& ba_param) {
-    optimizer->optimize(ba_param.num_iteration, ba_param.num_thread, ba_param.report);
+                             const Config& cfg) {
+    const i32 num_iteration = cfg.get<i32>("motion.optimizer.num_iterations", 150);
+    const i32 num_thread = cfg.get<i32>("motion.optimizer.num_thread", 2);
+    const bool report = static_cast<bool>(cfg.get<i32>("motion.optimizer.full_report", 1));
+    optimizer->optimize(num_iteration, num_thread, report);
     optimizer->store_result(landmarks, frames);
 }
 
 
 void BundleAdjustment::solve(std::vector<KeyFrame::Ptr>& frames,
-                             const BAParam& ba_param) {
-    optimizer->optimize(ba_param.num_iteration, ba_param.num_thread, ba_param.report);
+                             const Config& cfg) {
+    const i32 num_iteration = cfg.get<i32>("motion.optimizer.num_iterations", 150);
+    const i32 num_thread = cfg.get<i32>("motion.optimizer.num_thread", 2);
+    const bool report = static_cast<bool>(cfg.get<i32>("motion.optimizer.full_report", 1));
+    optimizer->optimize(num_iteration, num_thread, report);
     optimizer->store_result(frames);
 }
 

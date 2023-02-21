@@ -6,7 +6,6 @@
 #include "cp_exception.hpp"
 
 #include <numeric>
-#include <unordered_set>
 #include <glog/logging.h>
 
 namespace cuphoto {
@@ -34,28 +33,29 @@ std::vector<KeyFrame::Ptr> Sfm::get_frames() const {
 }
 
 
-void Sfm::run_pipeline() {
-    // TODO add config struct
+void Sfm::run_pipeline(const Config& cfg) {
     if (frames.empty()) {
         throw CuPhotoException("The image data is empty! Can't run SFM pipeline");
     }
 
     std::vector<std::vector<Feature::Ptr>> feat_pts;
     std::vector<cv::cuda::GpuMat> descriptors;
-    filter_outlier_frames(feat_pts, descriptors);
+    filter_outlier_frames(cfg, feat_pts, descriptors);
     std::vector<MatchAdjacent> matching;
-    matching_feature(feat_pts, descriptors, matching);
+    matching_feature(feat_pts, descriptors, cfg, matching);
 
     LOG(INFO) << "Feature matching size: " << matching.size();
 
-    estimation_motion(matching, feat_pts);
+    estimation_motion(matching, cfg, feat_pts);
 
     LOG(INFO) << "Total landmark size: " << landmarks.size();
-
 }
 
 
-void Sfm::store_to_ply(const std::string_view& ply_filepath, const r64 range_threshold) const {
+void Sfm::store_to_ply(const std::string& ply_filepath, 
+                      const r32 x_min, const r32 x_max,
+                      const r32 y_min, const r32 y_max,
+                      const r32 depth) const {
     std::vector<Vec3> pts;
     std::vector<Vec3f> colors;
     std::vector<SE3> poses;
@@ -64,12 +64,14 @@ void Sfm::store_to_ply(const std::string_view& ply_filepath, const r64 range_thr
     }
 
     for (const auto& landmark : landmarks) {
-        if (landmark->pose().z() > range_threshold || 
-            landmark->pose().y() > range_threshold ||
-            landmark->pose().y() < -range_threshold ||
-            landmark->pose().x() > range_threshold ||
-            landmark->pose().x() < -range_threshold)
-            continue;
+        if (landmark->pose().z() > depth || 
+            landmark->pose().y() > y_max ||
+            landmark->pose().y() < y_min ||
+            landmark->pose().x() > x_max ||
+            landmark->pose().x() < x_min) {
+                continue;
+            }
+            
         pts.emplace_back(landmark->pose());
         colors.emplace_back(landmark->color());
     }
@@ -77,11 +79,12 @@ void Sfm::store_to_ply(const std::string_view& ply_filepath, const r64 range_thr
     write_ply_file(ply_filepath, poses, pts, colors);
 }
 
-void Sfm::filter_outlier_frames(std::vector<std::vector<Feature::Ptr>>& feat_pts,
+void Sfm::filter_outlier_frames(const Config& cfg,
+                                std::vector<std::vector<Feature::Ptr>>& feat_pts,
                                 std::vector<cv::cuda::GpuMat>& descriptors) {
-    detect_feature(feat_pts, descriptors);
+    detect_feature(cfg, feat_pts, descriptors);
     std::vector<MatchAdjacent> matching;
-    matching_feature(feat_pts, descriptors, matching);
+    matching_feature(feat_pts, descriptors, cfg, matching);
 
     std::vector<KeyFrame::Ptr> filtered_frames;
     std::vector<cv::cuda::GpuMat> filtered_descriptors;
@@ -100,10 +103,11 @@ void Sfm::filter_outlier_frames(std::vector<std::vector<Feature::Ptr>>& feat_pts
 }
 
 
-void Sfm::detect_feature(std::vector<std::vector<Feature::Ptr>>& feat_pts,
+void Sfm::detect_feature(const Config& cfg,
+                         std::vector<std::vector<Feature::Ptr>>& feat_pts,
                          std::vector<cv::cuda::GpuMat>& descriptors) {
-    // TODO add config
-    FeatureDetector fd(FeatureDetectorBackend::SIFT, "");
+    FeatureDetectorBackend backend = static_cast<FeatureDetectorBackend>(cfg.get<i32>("feature.type", 1));
+    FeatureDetector fd(backend, cfg);
     for (const auto frame : frames) {
         std::vector<Feature::Ptr> kpts;
         cv::cuda::GpuMat descriptor;
@@ -116,24 +120,34 @@ void Sfm::detect_feature(std::vector<std::vector<Feature::Ptr>>& feat_pts,
 
 void Sfm::matching_feature(const std::vector<std::vector<Feature::Ptr>>& feat_pts,
                            const std::vector<cv::cuda::GpuMat>& descriptors,
+                           const Config& cfg,
                            std::vector<MatchAdjacent>& matching) {
+    FeatureMatcherBackend backend = static_cast<FeatureMatcherBackend>(cfg.get<i32>("feature.matching.type", 0));
     matching = feature_matching(descriptors,
                                 feat_pts,
-                                camera->K());
+                                camera->K(),
+                                backend,
+                                cfg);
 }
 
 
 void Sfm::estimation_motion(const std::vector<MatchAdjacent>& matching,
+                            const Config& cfg,
                             std::vector<std::vector<Feature::Ptr>>& feat_pts) {
-    MotionEstimationRansac::Ptr me_ransac = std::make_shared<MotionEstimationRansac>();
+    MotionEstimationRansac::Ptr me_ransac = std::make_shared<MotionEstimationRansac>(cfg);
     
     me_ransac->estimate_motion(frames, matching, feat_pts, camera);
 
-    build_landmarks_graph_triangluation(matching, frames, feat_pts, camera, vis_graph, landmarks);
+    const r64 triangulation_threshold = cfg.get<r64>("trianglulation.treshold", 1e-2);
+    
+    build_landmarks_graph_triangluation(matching, frames,
+                                        feat_pts, camera,
+                                        triangulation_threshold,
+                                        vis_graph, landmarks);
 
     MotionEstimationOptimization::Ptr me_optim = std::make_shared<MotionEstimationOptimization>();
 
-    me_optim->estimate_motion(landmarks, frames, vis_graph, feat_pts, camera);
+    me_optim->estimate_motion(landmarks, frames, vis_graph, feat_pts, camera, cfg);
 
     
     for (auto lm_it = landmarks.begin(); lm_it != landmarks.end(); ) {

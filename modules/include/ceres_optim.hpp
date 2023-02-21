@@ -185,7 +185,7 @@ public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
     using Ptr = std::shared_ptr<CeresOptimizerReprojection>;
 
-    CeresOptimizerReprojection(const TypeReprojectionError tre, const r64 loss_width = 6.5);
+    CeresOptimizerReprojection(const TypeReprojectionError tre, const Config& cfg);
     void optimize(const i32 n_iteration, const i32 num_threads, const bool fullreport) override;
 
     void build_blocks_reprojection(const VisibilityGraph& vis_graph,
@@ -222,7 +222,7 @@ public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
     using Ptr = std::shared_ptr<CeresOptimizerICP>;
 
-    CeresOptimizerICP(const r64 loss_width = 0.05);
+    CeresOptimizerICP(const Config& cfg);
     void optimize(const i32 n_iteration, const i32 num_threads, const bool fullreport) override;
     void build_blocks_icp(const std::unordered_map<i32, ConnectionPoints>& pts3D,
                           const std::vector<MatchAdjacent>& ma, 

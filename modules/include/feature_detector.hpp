@@ -1,10 +1,10 @@
 #ifndef CUPHOTO_LIB_FEATURE_DETECTOR_HPP
 #define CUPHOTO_LIB_FEATURE_DETECTOR_HPP
 
+#include "config.hpp"
 #include "feature.hpp"
 #include "keyframe.hpp"
 
-#include <string_view>
 #include <vector>
 
 #include <opencv2/features2d/features2d.hpp>
@@ -12,9 +12,8 @@
 namespace cuphoto {
 
 
-// TODO add new GPU feature detector backends
 enum class FeatureDetectorBackend {
-    ORB,
+    ORB = 0,
     SIFT,
     UNKNOWN
 };
@@ -22,13 +21,14 @@ enum class FeatureDetectorBackend {
 
 class FeatureDetector {
 public:
-    FeatureDetector(const FeatureDetectorBackend backend, const std::string_view config);
+    FeatureDetector(const FeatureDetectorBackend backend,
+                    const Config& cfg);
 
     bool detectAndCompute(const KeyFrame::Ptr frame, std::vector<Feature::Ptr>& feature_pts, cv::cuda::GpuMat& descriptor);
     
 protected:
-    cv::Ptr<cv::Feature2D> create_orb(const std::string_view config);
-    cv::Ptr<cv::Feature2D> create_sift(const std::string_view config);
+    cv::Ptr<cv::Feature2D> create_orb(const Config& cfg);
+    cv::Ptr<cv::Feature2D> create_sift(const Config& cfg);
 private:
     cv::Ptr<cv::Feature2D> detector;
     i32 min_keypoints;

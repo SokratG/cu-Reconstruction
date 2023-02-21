@@ -41,8 +41,9 @@ Vec3 CeresObservation::position() const {
 
 
 // ===================================================================================
-CeresOptimizerReprojection::CeresOptimizerReprojection(const TypeReprojectionError tre, const r64 _loss_width) : 
-                                                       type_err(tre), loss_width(_loss_width) {
+CeresOptimizerReprojection::CeresOptimizerReprojection(const TypeReprojectionError tre, const Config& cfg) : 
+                                                       type_err(tre) {
+    loss_width = cfg.get<r64>("motion.optimizer.ceres.reprojection.loss_width", 6.5);
     optim_problem = std::make_shared<ceres::Problem>();
 }
 
@@ -148,7 +149,8 @@ void CeresOptimizerReprojection::store_result(std::vector<KeyFrame::Ptr>& frames
 
 
 // ===================================================================================
-CeresOptimizerICP::CeresOptimizerICP(const r64 _loss_width) : loss_width(_loss_width) {
+CeresOptimizerICP::CeresOptimizerICP(const Config& cfg) {
+    loss_width = cfg.get<r64>("motion.optimizer.ceres.icp.loss_width", 0.1);
     optim_problem = std::make_shared<ceres::Problem>();
 }
 

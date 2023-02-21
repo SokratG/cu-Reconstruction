@@ -8,6 +8,7 @@ void build_landmarks_graph_triangluation(const std::vector<MatchAdjacent>& match
                                          const std::vector<KeyFrame::Ptr>& frames,
                                          const std::vector<std::vector<Feature::Ptr>>& feat_pts,
                                          const Camera::Ptr camera,
+                                         const r64 triangulation_theshold,
                                          VisibilityGraph& vis_graph,
                                          std::vector<Landmark::Ptr>& landmarks) 
 {
@@ -51,7 +52,7 @@ void build_landmarks_graph_triangluation(const std::vector<MatchAdjacent>& match
             Vec3 pt_world = Vec3::Zero();
             const auto pt_camera = project_px_point(camera, src_pt, dst_pt);
             const bool is_valid = triangulation(frames.at(src_idx)->pose(), frames.at(dst_idx)->pose(),
-                                                pt_camera, 1e-2, pt_world);
+                                                pt_camera, triangulation_theshold, pt_world);
             ui32 visibility_idx = 0;
             if (visitView1 != vis_graph.end())
                 visibility_idx = visitView1->second->landmark_idx();

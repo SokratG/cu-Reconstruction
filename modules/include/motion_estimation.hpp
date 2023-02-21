@@ -2,6 +2,7 @@
 #define CUPHOTO_LIB_ME_HPP
 
 #include "types.hpp"
+#include "config.hpp"
 #include "keyframe.hpp"
 #include "landmark.hpp"
 #include "camera.hpp"
@@ -25,6 +26,8 @@ public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
     using Ptr = std::shared_ptr<MotionEstimationRansac>;
 
+    MotionEstimationRansac(const Config& cfg);
+
     bool estimate_motion(std::vector<KeyFrame::Ptr>& frames,
                          const std::vector<MatchAdjacent>& ma,
                          const std::vector<std::vector<Feature::Ptr>>& feat_pts,
@@ -34,6 +37,8 @@ private:
                          const std::vector<cv::Point2d>& dst,
                          const cv::Mat K,
                          Mat3& R, Vec3& t);
+    r64 prob;
+    r64 threshold;
 };
 
 class MotionEstimationICP {
@@ -59,12 +64,12 @@ public:
                          const VisibilityGraph& vis_graph,
                          const std::vector<std::vector<Feature::Ptr>>& feat_pts,
                          const Camera::Ptr camera,
-                         const TypeMotion tm = TypeMotion::POSE_POINT);
+                         const Config& cfg);
 
     bool estimate_motion(std::vector<KeyFrame::Ptr>& frames,
                          const std::vector<MatchAdjacent>& ma,
                          const std::unordered_map<i32, ConnectionPoints>& pts3D,
-                         const TypeMotion tm = TypeMotion::POSE_ICP);
+                         const Config& cfg);
 };
 
 

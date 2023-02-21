@@ -3,12 +3,12 @@
 
 #include "types.hpp"
 #include "point_cloud_types.hpp"
-
+#include "config.hpp"
 
 namespace cuphoto {
 
 enum class PointCloudStitcherBackend {
-    FEATURE_ESTIMATOR_LM,
+    FEATURE_ESTIMATOR_LM = 0,
     ICP_ESTIMATOR,
     FEATURE_AND_ICP_ESTIMATOR,
     UNKNOWN
@@ -24,18 +24,18 @@ struct PointCloudStitcherConfig
     r32 sift_min_contrast = 0.5f;
 
     /* descriptor config: */
-    r32 desc_normal_radius_search = 0.1;
-    r32 desc_feature_radius_search = 0.2;
-    i32 desc_inlier_size = 200;
-    r32 desc_inlier_threshold = 1.8; // 1.8
+    r32 desc_normal_radius_search = 0.1f;
+    r32 desc_feature_radius_search = 0.2f;
+    i32 desc_inlier_size = 150;
+    r32 desc_inlier_threshold = 1.8f; // 1.8
 
     /* ICP config */
     r64 icp_max_correspond_dist = 0.7;
     r64 icp_transformation_eps = 1e-7;
     i32 icp_max_iteration = 50;
-    r32 icp_ransac_threshold = 0.06; // 0.05 = default
-    r32 icp_resolution_voxel_grid = 0.1;
-    r32 icp_step_resolution_point_cloud = 0.07;
+    r32 icp_ransac_threshold = 0.06f; // 0.05 = default
+    r32 icp_resolution_voxel_grid = 0.1f;
+    r32 icp_step_resolution_point_cloud = 0.07f;
     i32 icp_min_points_per_voxel = -1; // not used
 };
 
@@ -46,10 +46,11 @@ public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
     using Ptr = std::shared_ptr<PointCloudStitcher>;
 
-    PointCloudStitcher(const PointCloudStitcherBackend pcsb = PointCloudStitcherBackend::FEATURE_AND_ICP_ESTIMATOR);
+    PointCloudStitcher(const PointCloudStitcherBackend pcsb, const Config& cfg);
+    PointCloudStitcher(const PointCloudStitcherBackend pcsb, const PointCloudStitcherConfig& pcls_cfg);
+
     PointCloudCPtr stitch(const std::vector<PointCloudCPtr>& pcl_pc,
-                          std::vector<Mat4>& transforms,
-                          const PointCloudStitcherConfig& pcsc = PointCloudStitcherConfig());
+                          std::vector<Mat4>& transforms);
 protected:
     void transform_estimation_icp(const std::vector<PointCloudCPtr>& pcl_pc,
                                   std::vector<Mat4f>& transforms,
@@ -63,6 +64,7 @@ private:
 
 private:
     PointCloudStitcherBackend pcsb;
+    PointCloudStitcherConfig pcl_pcsc;
 };
 
 

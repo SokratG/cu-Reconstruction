@@ -19,7 +19,7 @@ struct SiftParams {
 // source: https://github.com/Celebrandil/CudaSift/issues/42
 class CudaSiftWrapper : public cv::Feature2D {
 public:
-    CudaSiftWrapper(const SiftParams& sp = SiftParams());
+    CudaSiftWrapper(const SiftParams& sp);
 	~CudaSiftWrapper();
 
     static cv::Ptr<CudaSiftWrapper> create(const SiftParams& sp = SiftParams());

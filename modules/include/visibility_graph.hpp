@@ -49,6 +49,7 @@ void build_landmarks_graph_triangluation(const std::vector<MatchAdjacent>& match
                                          const std::vector<KeyFrame::Ptr>& frames,
                                          const std::vector<std::vector<Feature::Ptr>>& feat_pts,
                                          const Camera::Ptr camera,
+                                         const r64 triangulation_theshold,
                                          VisibilityGraph& vis_graph,
                                          std::vector<Landmark::Ptr>& landmarks);
 

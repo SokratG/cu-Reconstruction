@@ -13,29 +13,37 @@
 namespace cuphoto {
 
 
-BundleAdjustment::Ptr get_ba_problem(const TypeMotion tm) 
+BundleAdjustment::Ptr get_ba_problem(const TypeMotion tm, const Config& cfg) 
 {
     switch (tm) {
         case TypeMotion::POSE_POINT:
             return std::make_shared<BundleAdjustment>(OptimizerType::BA_CERES, 
-                                                      TypeReprojectionError::REPROJECTION_POSE_POINT);
+                                                      TypeReprojectionError::REPROJECTION_POSE_POINT,
+                                                      cfg);
         case TypeMotion::POSE:
             return std::make_shared<BundleAdjustment>(OptimizerType::BA_CERES, 
-                                                      TypeReprojectionError::REPROJECTION_POSE);
+                                                      TypeReprojectionError::REPROJECTION_POSE,
+                                                      cfg);
         case TypeMotion::POSE_ICP:
             return std::make_shared<BundleAdjustment>(OptimizerType::BA_CERES_ICP,
-                                                      TypeReprojectionError::REPROJECTION_POSE);
+                                                      TypeReprojectionError::REPROJECTION_POSE,
+                                                      cfg);
         default:
             throw CuPhotoException("Error: Unknown type of motion in optimization!");
     }
 }
 
 
+MotionEstimationRansac::MotionEstimationRansac(const Config& cfg) {
+    prob = cfg.get<r64>("motion.ransac.prob", 0.9);
+    threshold = cfg.get<r64>("motion.ransac.threshold", 1.5);
+}
+
 void MotionEstimationRansac::estimate_ransac(const std::vector<cv::Point2d>& src, 
                                              const std::vector<cv::Point2d>& dst,
                                              const cv::Mat K,
                                              Mat3& R, Vec3& t) {
-    cv::Mat E = cv::findEssentialMat(src, dst, K, cv::FM_RANSAC, 0.9, 1.5);
+    cv::Mat E = cv::findEssentialMat(src, dst, K, cv::FM_RANSAC, prob, threshold);
     cv::Mat cvR, cvt;
     cv::recoverPose(E, src, dst, K, cvR, cvt);
     cv::cv2eigen(cvR, R); cv::cv2eigen(cvt, t);
@@ -147,18 +155,18 @@ bool MotionEstimationOptimization::estimate_motion(std::vector<Landmark::Ptr>& l
                                                    const VisibilityGraph& vis_graph,
                                                    const std::vector<std::vector<Feature::Ptr>>& feat_pts,
                                                    const Camera::Ptr camera,
-                                                   const TypeMotion tm) {
+                                                   const Config& cfg) {
     if (landmarks.empty() || frames.empty()) {
         LOG(ERROR) << "The given data is empty:";
         LOG(ERROR) << "frames: " << frames.empty();
         LOG(ERROR) << "landmarks: " << landmarks.empty();
         return false;
     }
-    BundleAdjustment::Ptr ba = get_ba_problem(tm);
+    BundleAdjustment::Ptr ba = get_ba_problem(TypeMotion::POSE_POINT, cfg);
     
     ba->build_problem(vis_graph, landmarks, frames, feat_pts, camera);
 
-    ba->solve(landmarks, frames);
+    ba->solve(landmarks, frames, cfg);
 
     return true;
 }
@@ -166,7 +174,7 @@ bool MotionEstimationOptimization::estimate_motion(std::vector<Landmark::Ptr>& l
 bool MotionEstimationOptimization::estimate_motion(std::vector<KeyFrame::Ptr>& frames,
                                                    const std::vector<MatchAdjacent>& ma,
                                                    const std::unordered_map<i32, ConnectionPoints>& pts3D,
-                                                   const TypeMotion tm) {
+                                                   const Config& cfg) {
     if (pts3D.empty() || ma.empty() || frames.empty()) {
         LOG(ERROR) << "The given data is empty:";
         LOG(ERROR) << "frames: " << frames.empty();
@@ -175,11 +183,11 @@ bool MotionEstimationOptimization::estimate_motion(std::vector<KeyFrame::Ptr>& f
         return false;
     }
 
-    BundleAdjustment::Ptr ba = get_ba_problem(tm);
+    BundleAdjustment::Ptr ba = get_ba_problem(TypeMotion::POSE_ICP, cfg);
 
     ba->build_problem(pts3D, ma, frames);
 
-    ba->solve(frames);
+    ba->solve(frames, cfg);
 
     return true;
 }

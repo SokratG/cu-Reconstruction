@@ -1,6 +1,7 @@
 #ifndef CUPHOTO_LIB_BUNDLE_ADJUSTMENT_HPP
 #define CUPHOTO_LIB_BUNDLE_ADJUSTMENT_HPP
 
+#include "config.hpp"
 #include "optimizer.hpp"
 #include <memory>
 #include <vector>
@@ -25,7 +26,7 @@ public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
     using Ptr = std::shared_ptr<BundleAdjustment>;
 
-    BundleAdjustment(const OptimizerType opt_type, const TypeReprojectionError type_err);
+    BundleAdjustment(const OptimizerType opt_type, const TypeReprojectionError type_err, const Config& cfg);
     void build_problem(const VisibilityGraph& vis_graph,
                        const std::vector<Landmark::Ptr>& landmarks, 
                        const std::vector<KeyFrame::Ptr>& frames,
@@ -39,11 +40,13 @@ public:
 
     void solve(std::vector<Landmark::Ptr>& landmarks, 
                std::vector<KeyFrame::Ptr>& frames,
-               const BAParam& ba_param = BAParam());
+               const Config& cfg);
     void solve(std::vector<KeyFrame::Ptr>& frames,
-               const BAParam& ba_param = BAParam());
+               const Config& cfg);
 protected:
-    Optimizer::Ptr get_optimizer(const OptimizerType opt_type, const TypeReprojectionError type_err) const;
+    Optimizer::Ptr get_optimizer(const OptimizerType opt_type, 
+                                 const TypeReprojectionError type_err,
+                                 const Config& cfg) const;
 private:
     Optimizer::Ptr optimizer;
 };

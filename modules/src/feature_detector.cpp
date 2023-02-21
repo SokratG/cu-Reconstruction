@@ -9,29 +9,47 @@
 
 namespace cuphoto {
 
-FeatureDetector::FeatureDetector(const FeatureDetectorBackend backend, const std::string_view config) : 
-                                 min_keypoints(200)
+FeatureDetector::FeatureDetector(const FeatureDetectorBackend backend,
+                                 const Config& cfg) : 
+                                 min_keypoints(cfg.get<i32>("feature.threshold_min_keypoints", 200))
 {
     switch (backend) {
         case FeatureDetectorBackend::ORB:
-            detector = create_orb(config);
+            detector = create_orb(cfg);
             break;
         case FeatureDetectorBackend::SIFT:
-            detector = create_sift(config);
+            detector = create_sift(cfg);
             break;
         default:
             throw CuPhotoException("The given feature detector backend is not allowed!");
     }
 }
 
-cv::Ptr<cv::Feature2D> FeatureDetector::create_orb(const std::string_view config) {
+cv::Ptr<cv::Feature2D> FeatureDetector::create_orb(const Config& cfg) {
     // TODO: add config read ORB parameters
-    return cv::cuda::ORB::create(1000, 1.2, 8, 31, 0, 3, cv::ORB::HARRIS_SCORE);
+    return cv::cuda::ORB::create(
+        cfg.get<i32>("feature.orb.num_points", 1000),
+        cfg.get<r32>("feature.orb.scale_pyr", 1.2),
+        cfg.get<i32>("feature.orb.num_pyr", 8),
+        cfg.get<i32>("feature.orb.edge_threshold", 31),
+        cfg.get<i32>("feature.orb.start_level", 0),
+        cfg.get<i32>("feature.orb.wta_k", 3),
+        cv::ORB::HARRIS_SCORE,
+        cfg.get<i32>("feature.orb.patch_size", 31),
+        cfg.get<i32>("feature.orb.fast_threshold", 20)
+    );
 }
 
-cv::Ptr<cv::Feature2D> FeatureDetector::create_sift(const std::string_view config) {
-    // TODO: add config read SIFT parameters
-    return CudaSift::create();
+cv::Ptr<cv::Feature2D> FeatureDetector::create_sift(const Config& cfg) {
+    SiftParams sp;
+    sp.maxKeypoints = cfg.get<i32>("feature.sift.max_keypoints", 1500);
+    sp.numOctaves = cfg.get<i32>("feature.sift.num_octaves", 6);
+    sp.initBlur = cfg.get<r32>("feature.sift.init_blur", 1.0);
+    sp.thresh = cfg.get<r32>("feature.sift.thresh", 1.7);
+    sp.minScale = cfg.get<r32>("feature.sift.min_scale", 0.0);
+    sp.upScale = static_cast<bool>(cfg.get<i32>("feature.sift.up_scale", 0));
+
+    return CudaSift::create(sp);
 }
 
 

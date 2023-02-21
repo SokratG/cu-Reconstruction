@@ -1,0 +1,89 @@
+%YAML:1.0
+
+# dataset path
+dataset.path: "./data/dataset/rgbd/scene01"
+point_cloud_store.path: "./dense_rgbd_point_cloud.ply" 
+num_images: 4
+
+# Kinect rgb camera intrinsics
+camera.fx: 527.01
+camera.fy: 527.01
+camera.cx: 320.0
+camera.cy: 240.0
+
+# Kinect depth camera intrinsics
+depth.fx: 391.54
+depth.fy: 391.54
+depth.cx: 320.0
+depth.cy: 240.0
+
+# kinect depth
+depth_scale: 0.001 
+
+# Feature detection
+feature.type: 1 # 0 - ORB, 1 - SIFT
+
+feature.sift.max_keypoints: 1500
+feature.sift.num_octaves: 6
+feature.sift.init_blur: 1.0
+feature.sift.thresh: 1.7
+feature.sift.min_scale: 0.0
+feature.sift.up_scale: 0 # 0 - false, 1 - true
+
+feature.orb.num_points: 1000
+feature.orb.scale_pyr: 1.2
+feature.orb.num_pyr: 8
+feature.orb.edge_threshold: 31
+feature.orb.start_level: 0
+feature.orb.wta_k: 3
+feature.orb.patch_size: 31
+feature.orb.fast_threshold: 20
+
+feature.threshold_min_keypoints: 200
+
+# feature matching
+feature.matching.type: 0 # 0 - BRUTEFORCE, 1 - FLANN
+feature.matching.ratio_threshold: 0.85
+feature.matching.k_nn: 2
+feature.matching.prob: 0.9
+feature.matching.threshold: 2.5
+feature.matching.min_inlier: 50
+
+
+# ceres optimizer
+motion.optimizer.ceres.reprojection.loss_width: 6.5
+motion.optimizer.ceres.icp.loss_width: 0.1
+motion.optimizer.num_iterations: 150
+motion.optimizer.num_thread: 2
+motion.optimizer.full_report: 1 # 0 - false, 1 - true
+
+
+# point cloud voxel filter
+point_cloud.depth_threshold_min: 0.00001
+point_cloud.depth_threshold_max: 23.5
+
+
+# point cloud stitcher
+pcl.stitcher.type: 2 # 0 - feature based, 1 - icp, 2 - feature and icp
+
+pcl.stitcher.feature.sift.min_scale: 0.1
+pcl.stitcher.feature.sift.n_octaves: 6
+pcl.stitcher.feature.sift.n_scales_per_octave: 10
+pcl.stitcher.feature.sift.min_contrast: 0.5
+
+pcl.stitcher.descriptor.FPFHSignature33.normal_radius_search: 0.1
+pcl.stitcher.descriptor.FPFHSignature33.feature_radius_search: 0.2
+pcl.stitcher.descriptor.FPFHSignature33.inlier_size: 150
+pcl.stitcher.descriptor.FPFHSignature33.inlier_threshold: 1.8
+
+pcl.stitcher.icp.max_correspond_dist: 0.7
+pcl.stitcher.icp.transformation_eps: 0.0000001
+pcl.stitcher.icp.max_iteration: 50
+pcl.stitcher.icp.ransac_threshold: 0.06
+pcl.stitcher.icp.resolution_voxel_grid: 0.1
+pcl.stitcher.icp.step_resolution_point_cloud: 0.07
+pcl.stitcher.icp.min_points_per_voxel: -1
+
+pcl.stitcher.statistical_filter.k_mean: 25
+pcl.stitcher.statistical_filter.std_dev_mul_thresh: 0.7
+pcl.stitcher.resolution: 0.03

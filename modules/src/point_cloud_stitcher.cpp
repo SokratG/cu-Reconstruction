@@ -27,24 +27,47 @@ struct PCLMatchAdjacent {
 };
 
 
-PointCloudStitcher::PointCloudStitcher(const PointCloudStitcherBackend _pcsb) : pcsb(_pcsb) {
+PointCloudStitcher::PointCloudStitcher(const PointCloudStitcherBackend _pcsb, const Config& cfg) 
+                                    : pcsb(_pcsb) {
+    pcl_pcsc.sift_min_scale = cfg.get<r32>("pcl.stitcher.feature.sift.min_scale", 0.1f);
+    pcl_pcsc.sift_n_octaves = cfg.get<i32>("pcl.stitcher.feature.sift.n_octaves", 6);
+    pcl_pcsc.sift_n_scales_per_octave = cfg.get<i32>("pcl.stitcher.feature.sift.n_scales_per_octave", 10);
+    pcl_pcsc.sift_min_contrast = cfg.get<r32>("pcl.stitcher.feature.sift.min_contrast", 0.5f);
 
+    pcl_pcsc.desc_normal_radius_search = cfg.get<r32>("pcl.stitcher.descriptor.FPFHSignature33.normal_radius_search", 0.1f);
+    pcl_pcsc.desc_feature_radius_search = cfg.get<r32>("pcl.stitcher.descriptor.FPFHSignature33.feature_radius_search", 0.2f);
+    pcl_pcsc.desc_inlier_size = cfg.get<i32>("pcl.stitcher.descriptor.FPFHSignature33.inlier_size", 150);
+    pcl_pcsc.desc_inlier_threshold = cfg.get<r32>("pcl.stitcher.descriptor.FPFHSignature33.inlier_threshold", 1.8f);
+
+
+    pcl_pcsc.icp_max_correspond_dist = cfg.get<r64>("pcl.stitcher.icp.max_correspond_dist", 0.7);
+    pcl_pcsc.icp_transformation_eps = cfg.get<r64>("pcl.stitcher.icp.transformation_eps", 1e-7);
+    pcl_pcsc.icp_max_iteration = cfg.get<i32>("pcl.stitcher.icp.max_iteration", 50);
+    pcl_pcsc.icp_ransac_threshold = cfg.get<r32>("pcl.stitcher.icp.ransac_threshold", 0.06f);
+    pcl_pcsc.icp_resolution_voxel_grid = cfg.get<r32>("pcl.stitcher.icp.resolution_voxel_grid", 0.1f);
+    pcl_pcsc.icp_step_resolution_point_cloud = cfg.get<r32>("pcl.stitcher.icp.step_resolution_point_cloud", 0.07f);
+    pcl_pcsc.icp_min_points_per_voxel = cfg.get<i32>("pcl.stitcher.icp.min_points_per_voxel", -1);
+}
+
+
+PointCloudStitcher::PointCloudStitcher(const PointCloudStitcherBackend _pcsb, const PointCloudStitcherConfig& pcls_cfg) 
+                                    : pcsb(_pcsb), pcl_pcsc(pcls_cfg) {
+    
 }
 
 PointCloudCPtr PointCloudStitcher::stitch(const std::vector<PointCloudCPtr>& pcl_pc,
-                                          std::vector<Mat4>& transforms,
-                                          const PointCloudStitcherConfig& pcsc) {
+                                          std::vector<Mat4>& transforms) {
     std::vector<Mat4f> transformsf = std::vector<Mat4f>();
     switch(pcsb) {
         case PointCloudStitcherBackend::FEATURE_ESTIMATOR_LM:
-            transform_estimation_rigid_lm(pcl_pc, transformsf, pcsc);
+            transform_estimation_rigid_lm(pcl_pc, transformsf, pcl_pcsc);
             break;
         case PointCloudStitcherBackend::ICP_ESTIMATOR:
-            transform_estimation_icp(pcl_pc, transformsf, pcsc);
+            transform_estimation_icp(pcl_pc, transformsf, pcl_pcsc);
             break;
         case PointCloudStitcherBackend::FEATURE_AND_ICP_ESTIMATOR:
-            transform_estimation_rigid_lm(pcl_pc, transformsf, pcsc);
-            transform_estimation_icp(pcl_pc, transformsf, pcsc);
+            transform_estimation_rigid_lm(pcl_pc, transformsf, pcl_pcsc);
+            transform_estimation_icp(pcl_pc, transformsf, pcl_pcsc);
             break;
         default:
             throw CuPhotoException("The given point cloud stitcher backend is not allowed!");

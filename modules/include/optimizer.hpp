@@ -1,7 +1,7 @@
 #ifndef CUPHOTO_LIB_OPTIMIZER_HPP
 #define CUPHOTO_LIB_OPTIMIZER_HPP
 
-
+#include "config.hpp"
 #include "landmark.hpp"
 #include "keyframe.hpp"
 #include "camera.hpp"
