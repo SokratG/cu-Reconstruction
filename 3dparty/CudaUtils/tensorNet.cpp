@@ -47,10 +47,6 @@
 	#define CREATE_INFER_RUNTIME createInferRuntime
 #endif
 
-#define LOG_DOWNLOADER_TOOL "        if loading a built-in model, maybe it wasn't downloaded before.\n\n"    \
-					   "        Run the Model Downloader tool again and select it for download:\n\n"   \
-					   "           $ cd <jetson-inference>/tools\n" 	  	\
-					   "           $ ./download-models.sh\n"
 
 #define USE_INPUT_TENSOR_CUDA_DEVICE_MEMORY
 #define CHECKSUM_TYPE "sha256sum"
@@ -723,7 +719,7 @@ bool tensorNet::ProfileModel(const std::string& deployFile,			   // name for caf
 			if( mModelType == MODEL_ONNX )
 				dims = shiftDims(dims);  // change NCHW to CHW for EXPLICIT_BATCH
 		#endif
-
+		
 			//nvinfer1::Dims3 dims = static_cast<nvinfer1::Dims3&&>(network->getInput(i)->getDimensions());
 			inputDimensions.insert(std::make_pair(network->getInput(i)->getName(), static_cast<nvinfer1::Dims3&&>(dims)));
 			LogVerbose(LOG_TRT "retrieved Input tensor '%s':  %ix%ix%i\n", network->getInput(i)->getName(), dims.d[0], dims.d[1], dims.d[2]);
@@ -1159,7 +1155,6 @@ bool tensorNet::LoadNetwork( const char* prototxt_path_, const char* model_path_
 		if( model_path.size() == 0 )
 		{
 			LogError("\nerror:  model file '%s' was not found.\n", model_path_);
-			LogInfo("%s\n", LOG_DOWNLOADER_TOOL);
 			return 0;
 		}
 
@@ -1428,7 +1423,7 @@ bool tensorNet::LoadEngine( nvinfer1::ICudaEngine* engine,
 		l.size = inputSize;
 		l.name = input_blobs[n];
 		l.binding = inputIndex;
-		
+
 		copyDims(&l.dims, &inputDims);
 		mInputs.push_back(l);
 	}

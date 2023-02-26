@@ -22,9 +22,14 @@
 |![](gitresource/figures/table_point_cloud.png) |
 <b></b>
 
+### Monodepth using TensorRT with MiDaS v2 small model
+1 | 2 |
+:------:|:-------:|
+![](gitresource/figures/B20.jpg)  |  ![](gitresource/figures/midas_depth.png) |
+<b></b>
+
 
 ### TODO Features:
-* add TensoRT monodepth
 * add Surface reconstruction(Surfels, Cuda TSDF, Cuda Poission)
 * add Disparity estimation(OpenCV SGBM, cuda Patch Matching)
 

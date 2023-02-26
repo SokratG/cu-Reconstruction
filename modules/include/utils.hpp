@@ -60,6 +60,12 @@ void write_ply_file(const std::string_view filename, const std::vector<SE3>& pos
                     const std::vector<Vec3>& pts, const std::vector<Vec3f>& color);
 
 
+bool save_image(const std::string& filepath, const cv::InputArray image);
+
+void hwc_to_chw(cv::InputArray src, cv::OutputArray dst);
+void chw_to_hwc(cv::InputArray src, cv::OutputArray dst);
+
+
 std::set<std::string> files_directory(const std::string& data_path, const std::set<std::string>& extensions);
 
 };

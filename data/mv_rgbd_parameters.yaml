@@ -2,7 +2,7 @@
 
 # dataset path
 dataset.path: "./data/dataset/rgbd/scene01"
-point_cloud_store.path: "./dense_rgbd_point_cloud.ply" 
+point_cloud_store.path: "./mv_dense_rgbd_point_cloud.ply" 
 num_images: 4
 
 # Kinect rgb camera intrinsics

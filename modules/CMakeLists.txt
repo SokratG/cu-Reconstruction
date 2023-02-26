@@ -88,6 +88,7 @@ target_link_libraries(cuphoto_lib ${CUDA_LIBRARIES})
 target_link_libraries(cuphoto_lib ${PCL_LIBRARIES})
 target_link_libraries(cuphoto_lib ${OpenCV_LIBRARIES})
 target_link_libraries(cuphoto_lib ${GLOG_LIBRARIES})
+target_link_libraries(cuphoto_lib nvinfer nvinfer_plugin)
 target_link_libraries(cuphoto_lib stdc++fs)
 
 

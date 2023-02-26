@@ -1,0 +1,42 @@
+%YAML:1.0
+
+
+dataset.path: "./data/dataset/monocular/figure"
+
+# midas_v2_small
+modelnetwork.path: "./data/network-models/monodepth/midas_v2_small.onnx"
+modelnetwork.type: 0 # 0 - MIDAS_V2_SMALL_256, 1 - monodepth_fcn_mobilenet
+
+modelnetwork.layer.input.name: "inputs:0" # "inputs:0" - midas, "input_0" - monodepth_fcn
+modelnetwork.layer.output.name: "Identity:0" # "Identity:0" - midas, "output_0" - monodepth_fcn
+
+modelnetwork.layer.input.width: 256
+modelnetwork.layer.input.height: 256
+modelnetwork.layer.input.image_format: 2 # 0 - rgb8, 1 - rgba8, 2 - rgb32f, 3 - rgba32f 
+modelnetwork.layer.input.batch_size: 1 # 1 - default
+modelnetwork.layer.input.max_intensity: 255.0
+
+# modelnetwork.layer.input.stride: 0
+# modelnetwork.layer.input.order: 0 # 0 - hwc, 1 - chw
+
+
+modelnetwork.layer.output.width: 256
+modelnetwork.layer.output.height: 256
+
+modelnetwork.layer.input.normalization.min: 0.0
+modelnetwork.layer.input.normalization.max: 1.0
+
+# modelnetwork.layer.input.standardization.mean.x: 0.485
+# modelnetwork.layer.input.standardization.mean.y: 0.456
+# modelnetwork.layer.input.standardization.mean.z: 0.406
+
+# modelnetwork.layer.input.standardization.stddev.x: 0.229
+# modelnetwork.layer.input.standardization.stddev.y: 0.224
+# modelnetwork.layer.input.standardization.stddev.z: 0.225
+
+
+tensorrt.device.type: 0 # 0 - GPU, 1 - DLA
+tensorrt.precision.type: 2 # 0 - disabled, 1 - fastest, 2 - fp32, 3 - fp16, 4 - int8 
+
+
+depth_scale: 0.001

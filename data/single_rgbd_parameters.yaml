@@ -1,0 +1,12 @@
+%YAML:1.0
+
+# dataset path
+dataset.path: "./data/dataset/monocular/figure"
+point_cloud_store.path: "./single_dense_point_cloud.ply"
+
+
+# Kinect rgb camera intrinsics
+camera.fx: 527.01
+camera.fy: 527.01
+camera.cx: 320.0
+camera.cy: 240.0

@@ -17,6 +17,8 @@ if (NOT CUDA_FOUND)
   message(STATUS "CUDA not found. Project will not be built.")
 endif(NOT CUDA_FOUND)
 
+find_package(OpenCV REQUIRED)
+
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 set(CMAKE_NVCC_FLAGS
     ${CMAKE_NVCC_FLAGS};
@@ -40,8 +42,6 @@ set(cuda_sources
   cudaFilterMode.cu
   cudaColormap.cuh
   cudaColormap.cu
-  tensorConvert.cuh
-  tensorConvert.cu
 )
 
 set(sources
@@ -59,6 +59,7 @@ set(sources
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR} 
 )
+include_directories(${OpenCV_INCLUDE_DIRS})
 
 #SET(CUDA_SEPARABLE_COMPILATION ON)
 
@@ -76,5 +77,6 @@ install(TARGETS cudaUtils
         PUBLIC_HEADER DESTINATION ${CMAKE_INCLUDE_OUTPUT_DIRECTORY})
 
 # set linker options
-target_link_libraries(cudaUtils ${CUDA_cudadevrt_LIBRARY})
+target_link_libraries(cudaUtils ${CUDA_LIBRARIES} ${CUDA_cudadevrt_LIBRARY})
+target_link_libraries(cudaUtils ${OpenCV_LIBRARIES})
 target_link_libraries(cudaUtils nvinfer nvinfer_plugin nvonnxparser nvcaffe_parser)

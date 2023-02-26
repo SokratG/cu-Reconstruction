@@ -26,17 +26,17 @@
  // forward declaration of IInt8Calibrator
 namespace nvinfer1 { class IInt8Calibrator; }
  
- // includes
+// includes
 #include <NvInfer.h>
 
-#include <cudaUtility.cuh>
-#include <imageFormat.h>
-#include <timespec.h>
-#include <logging.h>
+#include "cudaUtility.cuh"
+#include "imageFormat.h"
+#include "timespec.h"
+#include "logging.h"
 
 #include <vector>
 #include <sstream>
-#include <math.h>
+#include <cmath>
 
 
 #if NV_TENSORRT_MAJOR >= 6

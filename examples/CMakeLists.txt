@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.22)
 
-add_subdirectory(dense_rgbd)
+add_subdirectory(mv_dense_rgbd)
+add_subdirectory(single_dense_rgbd)
 add_subdirectory(sparse)
 add_subdirectory(monodepth)
