@@ -51,6 +51,8 @@ PointCloudCNPtr transform_point_cloud(const PointCloudCNPtr pcl_pc, const SE3& T
 cudaPointCloud::Ptr pcl_to_cuda_pc(const PointCloudCPtr pcl_pc,
                                    const std::array<r64, 9>& K);
 
+PointCloudCPtr cuda_pc_to_pcl(const cudaPointCloud::Ptr pcl_pc);
+
 
 };
 

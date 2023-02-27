@@ -130,7 +130,7 @@ bool MonoDepthNN::copy_to_tensor(const cv::cuda::GpuMat& input,  const TensorPre
 
 bool MonoDepthNN::process(const cv::cuda::GpuMat& input, cv::cuda::GpuMat& output, const TensorPreprocess trrt_preproc) {
 	cv::cuda::GpuMat resized_input;
-	cv::cuda::resize(input, resized_input, cv::Size(input_layer_width, input_layer_height), cv::INTER_CUBIC);
+	cv::cuda::resize(input, resized_input, cv::Size(input_layer_width, input_layer_height), 0.0, 0.0, cv::INTER_CUBIC);
 
 	if(IsModelType(MODEL_ONNX)) {
 		// remap from [0.0, 255.0] -> mean pixel subtraction or std dev applied

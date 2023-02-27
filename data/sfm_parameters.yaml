@@ -6,10 +6,10 @@ point_cloud_store.path: "./sparse_point_cloud.ply"
 
 
 # Kinect rgb camera intrinsics
-camera.fx: 527.01
-camera.fy: 527.01
-camera.cx: 320.0
-camera.cy: 240.0
+camera.fx: 719.5459
+camera.fy: 719.5459
+camera.cx: 240.0
+camera.cy: 320.0
 
 
 # Feature detection

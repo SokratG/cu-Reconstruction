@@ -72,9 +72,9 @@ cudaPointCloud::Ptr MultiViewSceneRGBD::stitch_point_cloud(const PointCloudData&
     vfc.resolution = cfg.get<r64>("pcl.stitcher.resolution", 0.03);
     total_pc = voxel_filter_pc(total_pc, vfc);
 
-    const auto tmp_cu_pc = pcl_to_cuda_pc(total_pc, K);
+    const auto result_cu_pc = pcl_to_cuda_pc(total_pc, K);
     
-    return tmp_cu_pc;
+    return result_cu_pc;
 }
 
 

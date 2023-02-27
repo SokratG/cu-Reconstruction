@@ -38,5 +38,4 @@ modelnetwork.layer.input.normalization.max: 1.0
 tensorrt.device.type: 0 # 0 - GPU, 1 - DLA
 tensorrt.precision.type: 2 # 0 - disabled, 1 - fastest, 2 - fp32, 3 - fp16, 4 - int8 
 
-
-depth_scale: 0.001
+depth_scale: 1.0

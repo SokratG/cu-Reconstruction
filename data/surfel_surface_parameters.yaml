@@ -1,0 +1,46 @@
+%YAML:1.0
+
+dataset.path: "./data/dataset/monocular/figure"
+mesh_store.path: "./mesh_dense_rgbd.ply" 
+
+camera.fx: 719.5459
+camera.fy: 719.5459
+camera.cx: 240.0
+camera.cy: 320.0
+
+images.index: 4
+
+# point cloud voxel filter
+point_cloud.depth_threshold_min: -30.0
+point_cloud.depth_threshold_max: 30.0
+
+pcl.statistical_filter.k_mean: 10
+pcl.statistical_filter.std_dev_mul_thresh: 0.9
+
+pcl.voxel_filter.resolution: 0.04
+
+
+# monodepth
+modelnetwork.path: "./data/network-models/monodepth/midas_v2_small.onnx"
+modelnetwork.type: 0 #
+
+modelnetwork.layer.input.name: "inputs:0"
+modelnetwork.layer.output.name: "Identity:0"
+
+modelnetwork.layer.input.width: 256
+modelnetwork.layer.input.height: 256
+modelnetwork.layer.input.image_format: 2 
+modelnetwork.layer.input.batch_size: 1
+modelnetwork.layer.input.max_intensity: 255.0
+
+
+modelnetwork.layer.output.width: 256
+modelnetwork.layer.output.height: 256
+
+modelnetwork.layer.input.normalization.min: 0.0
+modelnetwork.layer.input.normalization.max: 1.0
+
+tensorrt.device.type: 0 # 0 - GPU, 1 - DLA
+tensorrt.precision.type: 2 # 0 - disabled, 1 - fastest, 2 - fp32, 3 - fp16, 4 - int8 
+
+depth_scale: -0.01

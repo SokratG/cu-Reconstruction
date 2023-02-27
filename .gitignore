@@ -1,6 +1,7 @@
 .vscode/
 build/
 data/dataset/
+data/network-models/monodepth/*.onnx.*
 3dparty/CudaSift/
 /*.ply
 /*.png

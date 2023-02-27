@@ -20,6 +20,7 @@ public:
     cv::cuda::GpuMat process(const cv::cuda::GpuMat& frame, const bool equalize_hist = false);
 private:
     std::shared_ptr<MonoDepthNN> depth_estimator;
+    r64 scale;
 };
 
 };

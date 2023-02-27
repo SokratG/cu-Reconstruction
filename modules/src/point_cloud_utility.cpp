@@ -119,6 +119,23 @@ cudaPointCloud::Ptr pcl_to_cuda_pc(const PointCloudCPtr pcl_pc,
 }
 
 
+PointCloudCPtr cuda_pc_to_pcl(const cudaPointCloud::Ptr cuda_pc) {
+    PointCloudCPtr pcl_pc(new PointCloudC);
+    for (auto idx = 0; idx < cuda_pc->get_total_num_points(); ++idx) {
+        cudaPointCloud::Vertex* v = cuda_pc->get_data(idx);
+        PointTC p;
+        p.x = v->pos.x;
+        p.y = v->pos.y;
+        p.z = v->pos.z;
+        p.r = v->color.x;
+        p.g = v->color.y;
+        p.b = v->color.z;
+        pcl_pc->points.push_back(p);
+    }
+    return pcl_pc;
+}
+
+
 PointCloudCPtr transform_point_cloud(const PointCloudCPtr pcl_pc, const Mat4& T) {
     PointCloudCPtr pcl_target(new PointCloudC);
     pcl::transformPointCloud(*pcl_pc, *pcl_target, T);

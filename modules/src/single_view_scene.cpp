@@ -4,8 +4,8 @@
 namespace cuphoto {
 
 
-SingleViewScene::SingleViewScene(const Camera::Ptr camera) {
-    // TODO
+SingleViewScene::SingleViewScene(const Camera::Ptr _camera) : camera(_camera) {
+
 }
 
 cudaPointCloud::Ptr SingleViewScene::get_point_cloud() const {
@@ -13,9 +13,7 @@ cudaPointCloud::Ptr SingleViewScene::get_point_cloud() const {
 }
 
 bool SingleViewScene::store_to_ply(const std::string& ply_filepath) const {
-    // TODO
-
-    return true;
+    return cuda_pc->save_ply(ply_filepath);
 }
 
 };
