@@ -12,12 +12,12 @@ class SurfaceReconstruction {
 public:
     SurfaceReconstruction() = default;
 
-    virtual void reconstruct_surface(const cudaPointCloud::Ptr cuda_pc, const Config& cfg) = 0;
+    virtual void reconstruct_surface(const cudaPointCloud::Ptr cuda_pc) = 0;
 
     Mesh get_mesh() const {
         return surface_mesh;
     }
-private:
+protected:
     Mesh surface_mesh;
 };
 

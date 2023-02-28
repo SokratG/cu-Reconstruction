@@ -28,9 +28,15 @@
 ![](gitresource/figures/B20.jpg)  |  ![](gitresource/figures/midas_depth.png) |
 <b></b>
 
+### Surface reconstruction using monodepth and surfels triangulation
+1 | 2 |
+:------:|:-------:|
+![](gitresource/figures/B24.jpg)  |  ![](gitresource/figures/surfel_surface.png) |
+<b></b>
+
 
 ### TODO Features:
-* add Surface reconstruction(Surfels, Cuda TSDF, Cuda Poission)
+* add Surface reconstruction(Cuda TSDF, Cuda Poission)
 * add Disparity estimation(OpenCV SGBM, cuda Patch Matching)
 
 

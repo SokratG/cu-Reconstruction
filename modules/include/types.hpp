@@ -50,6 +50,7 @@ using Mat3f = Mat33f;
 using Mat4f = Mat44f;
 
 using VecX = Eigen::Matrix<r64, Eigen::Dynamic, 1>;
+using Vec10 = Eigen::Matrix<r64, 10, 1>;
 using Vec9 = Eigen::Matrix<r64, 9, 1>;
 using Vec6 = Eigen::Matrix<r64, 6, 1>;
 using Vec5 = Eigen::Matrix<r64, 5, 1>;
@@ -58,12 +59,16 @@ using Vec3 = Eigen::Matrix<r64, 3, 1>;
 using Vec2 = Eigen::Matrix<r64, 2, 1>;
 
 using VecXf = Eigen::Matrix<r32, Eigen::Dynamic, 1>;
+using Vec10f = Eigen::Matrix<r32, 10, 1>;
 using Vec9f = Eigen::Matrix<r32, 9, 1>;
 using Vec6f = Eigen::Matrix<r32, 6, 1>;
 using Vec5f = Eigen::Matrix<r32, 5, 1>;
 using Vec4f = Eigen::Matrix<r32, 4, 1>;
 using Vec3f = Eigen::Matrix<r32, 3, 1>;
 using Vec2f = Eigen::Matrix<r32, 2, 1>;
+
+using Vec2i = Eigen::Matrix<i64, 2, 1>;
+using Vec3i = Eigen::Matrix<i64, 3, 1>;
 
 // Sophus
 using SE3 = Sophus::SE3d;

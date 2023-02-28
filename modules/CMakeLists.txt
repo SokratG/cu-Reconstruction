@@ -36,7 +36,7 @@ find_package(Ceres REQUIRED)
 # boost
 find_package(Boost REQUIRED)
 # PCL
-find_package(PCL 1.8 REQUIRED COMPONENTS common filters registration keypoints features)
+find_package(PCL 1.8 REQUIRED COMPONENTS common io filters registration keypoints features surface)
 # CudaSift
 # find_library(CUDA_SIFT 
 #             NAMES cudaSift

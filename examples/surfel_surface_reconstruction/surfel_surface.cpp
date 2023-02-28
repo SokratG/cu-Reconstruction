@@ -45,9 +45,12 @@ int main(int argc, char* argv[]) {
 
         const auto point_cloud = svs.get_point_cloud();
 
-        cuphoto::SurfelSurface ss;
-        ss.reconstruct_surface(point_cloud, cfg);
+        cuphoto::SurfelSurface ss(cfg);
+        ss.reconstruct_surface(point_cloud);
 
+        const auto mesh = ss.get_mesh();
+
+        mesh.store_to_ply(store_path);
 
     } catch(cuphoto::CuPhotoException& photo_ex) {
         LOG(ERROR) << photo_ex.what();

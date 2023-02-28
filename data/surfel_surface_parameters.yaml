@@ -44,3 +44,17 @@ tensorrt.device.type: 0 # 0 - GPU, 1 - DLA
 tensorrt.precision.type: 2 # 0 - disabled, 1 - fastest, 2 - fp32, 3 - fp16, 4 - int8 
 
 depth_scale: -0.01
+
+
+# surface reconstuction
+surface.surfels.mls.radius: 0.1
+surface.surfels.mls.polynomial_order: 2
+
+surface.surfels.gp3.search_radius: 0.2
+surface.surfels.gp3.mu: 2.6
+surface.surfels.gp3.max_nn: 80
+surface.surfels.gp3.max_surf_angle: 0.78539 # 45 degrees
+surface.surfels.gp3.min_angle: 0.17453 # 10 degrees
+surface.surfels.gp3.max_angle: 2.09439 # 120 degrees
+surface.surfels.gp3.normal_consistency: 0 # 0 - false, 1 - true
+
