@@ -15,11 +15,11 @@ include_directories("${PROJECT_SOURCE_DIR}/examples/common")
 include_directories(${GFLAGS_INCLUDE_DIRS})
 include_directories(${GLOG_INCLUDE_DIRS})
 
-set(SRC_DENSE_PC "single_dense_pointcloud.cpp" "${PROJECT_SOURCE_DIR}/examples/common/rgb_dataset.cpp")
+set(SRC_STEREO "stereo_depth.cpp" 
+               "${PROJECT_SOURCE_DIR}/examples/common/stereo_dataset.cpp")
 
-add_executable(single_dense_pc ${SRC_DENSE_PC})
+add_executable(stereo_depth ${SRC_STEREO})
 
-target_link_libraries(single_dense_pc cuphoto_lib)
-target_link_libraries(single_dense_pc ${GFLAGS_LIBRARIES})
-target_link_libraries(single_dense_pc ${GLOG_LIBRARIES})
-target_link_libraries(single_dense_pc stdc++fs)
+target_link_libraries(stereo_depth cuphoto_lib)
+target_link_libraries(stereo_depth ${GFLAGS_LIBRARIES})
+target_link_libraries(stereo_depth ${GLOG_LIBRARIES})

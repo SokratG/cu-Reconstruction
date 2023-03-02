@@ -9,6 +9,7 @@ namespace cuphoto {
 using RGB = cv::cuda::GpuMat;
 using DEPTH = cv::cuda::GpuMat;
 using RGBD = std::tuple<RGB, DEPTH>;
+using STEREO = std::tuple<RGB, RGB>;
 
 }
 

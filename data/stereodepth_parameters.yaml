@@ -1,0 +1,35 @@
+%YAML:1.0
+
+
+dataset.path: "./data/dataset/stereo/delivery_area_1l"
+stereo_depth.path: "./stereo_depth.png"
+point_cloud_store.path: "./stereo_dense_point_cloud.ply"
+
+# camera intrinsic
+camera.fx: 541.764
+camera.fy: 541.764
+camera.cx: 553.869
+camera.cy: 232.396
+
+# camera stereo data
+camera.stereo.baseline: 59.9101
+
+# stereo parameters
+stereo.cuda.sgm.min_disparity: 0
+stereo.cuda.sgm.num_disparities: 128
+stereo.cuda.sgm.regularization_smoothness_p1: 10
+stereo.cuda.sgm.regularization_smoothness_p2: 120
+stereo.cuda.sgm.uniqueness_ratio: 5
+stereo.cuda.sgm.mode: 3 # 0 - MODE_SGBM, 1 - MODE_HH, 2 - MODE_SGBM_3WAY, 3 - MODE_HH4(default)
+
+depth_scale: 0.005
+
+
+# point cloud voxel filter
+point_cloud.depth_threshold_min: -20.0
+point_cloud.depth_threshold_max: 20.0
+
+pcl.statistical_filter.k_mean: 15
+pcl.statistical_filter.std_dev_mul_thresh: 0.9
+
+pcl.voxel_filter.resolution: 0.06

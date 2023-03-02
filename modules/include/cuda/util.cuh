@@ -21,6 +21,9 @@ static bool cudaHandleError(cudaError_t err, const ch* file, i32 line)
 void normalizeUsingWeightMapGpu32F(const cv::cuda::PtrStepf weight, cv::cuda::PtrStep<sh16> src,
                                    const i32 width, const i32 height);
 
+cudaError_t disparity_to_depth(const cv::cuda::PtrStepSz<sh16> input_data, r32* output_data, 
+                               const r32 focal, const r32 baseline, const r32 depth_scale = 1.0);
+
 
 };
 

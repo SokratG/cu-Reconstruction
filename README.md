@@ -34,10 +34,16 @@
 ![](gitresource/figures/B24.jpg)  |  ![](gitresource/figures/surfel_surface.png) |
 <b></b>
 
+### Cuda SGM stereo estimation
+1 | 2 |
+:------:|:-------:|
+![](gitresource/figures/im0.png)  |  ![](gitresource/figures/stereo_depth.png) |
+<b></b>
+
 
 ### TODO Features:
 * add Surface reconstruction(Cuda TSDF, Cuda Poission)
-* add Disparity estimation(OpenCV SGBM, cuda Patch Matching)
+* add Disparity estimation(cuda Patch Matching)
 
 
 
