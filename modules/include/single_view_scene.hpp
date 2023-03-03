@@ -6,6 +6,8 @@
 #include "camera.hpp"
 #include "keyframe.hpp"
 #include "feature.hpp"
+#include "config.hpp"
+
 #include <opencv2/core/cuda.hpp>
 
 namespace cuphoto {
@@ -19,6 +21,7 @@ public:
     SingleViewScene(const Camera::Ptr camera);
     cudaPointCloud::Ptr get_point_cloud() const;
     bool store_to_ply(const std::string& ply_filepath) const;
+    void estimate_pose(KeyFrame::Ptr frame_rgb, KeyFrame::Ptr frame_depth, const Config& cfg);
 
 protected:
     Camera::Ptr camera;

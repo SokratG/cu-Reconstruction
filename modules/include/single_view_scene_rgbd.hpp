@@ -3,7 +3,6 @@
 
 #include "single_view_scene.hpp"
 
-#include "config.hpp"
 
 namespace cuphoto {
 
