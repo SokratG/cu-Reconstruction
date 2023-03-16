@@ -39,6 +39,8 @@ __global__ void point_cloud_extract(const cv::cuda::PtrStepSzf depth,
     const r64 cx = K[2][0];
     const r64 cy = K[2][1];
 
+    point.normal = make_float4(0.0, 0.0, 0.0, 0.0);
+
     point.pos = make_float3((r32(x) - cx) * depth_value / fx, 
                             (r32(y) - cy) * depth_value / fy,
                             depth_value);
@@ -49,10 +51,6 @@ __global__ void point_cloud_extract(const cv::cuda::PtrStepSzf depth,
     }
 
     point.pos = transform * point.pos;
-
-    // for opengl / meshlab
-    point.pos.y *= -1.f;
-    point.pos.z *= -1.f;
 
     if (useRGB) {
         const uchar3 rgb = ((uchar3*)color.ptr(y))[x];
@@ -199,12 +197,13 @@ bool cudaPointCloud::add_vertex(const Vertex& v, const ui64 idx) {
     return true;
 }
 
-bool cudaPointCloud::add_vertex(const float3 pos, const uchar3 color, const ui64 idx) {
+bool cudaPointCloud::add_vertex(const float3 pos, const uchar3 color, const ui64 idx, const float4 normal) {
     if (idx >= total_num_pts) {
         LogError(LOG_CUDA "cudaPointCloud::add_vertex() -- index out of range\n");
         return false;
     }
     device_pts[idx].pos = pos;
+    device_pts[idx].normal = normal;
     device_pts[idx].color = color;
     return true;
 }
@@ -283,7 +282,10 @@ bool cudaPointCloud::save_ply(const std::string& filepath) const {
            << '\n' << "end_header\n";
 
     for (i64 idx = 0; idx < num_pts; ++idx) {
-        r32 x = device_pts[idx].pos.x, y = device_pts[idx].pos.y, z = device_pts[idx].pos.z;
+        // for opengl / meshlab mult by -1.f
+        r32 x = device_pts[idx].pos.x; 
+        r32 y = device_pts[idx].pos.y * -1.f; 
+        r32 z = device_pts[idx].pos.z * -1.f;
         i32 r = (i32)device_pts[idx].color.x, g = (i32)device_pts[idx].color.y, b = (i32)device_pts[idx].color.z;
         ply_of << x << " " << y << " " << z << " ";
         ply_of << r << " " << g << " " << b << "\n";

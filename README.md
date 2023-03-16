@@ -42,7 +42,7 @@
 
 
 ### TODO Features:
-* add Surface reconstruction(Cuda TSDF, Cuda Poission)
+* add Surface reconstruction(Cuda TSDF)
 * add Disparity estimation(cuda Patch Matching)
 
 

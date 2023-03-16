@@ -1,0 +1,13 @@
+%YAML:1.0
+
+dataset.path: "./data/dataset/point_cloud/"
+dataset.color.mode: 0 # 0 - false, 1 - true
+mesh_store.path: "./mesh_tsdf_bunny.ply" 
+
+camera.fx: 719.5459
+camera.fy: 719.5459
+camera.cx: 240.0
+camera.cy: 320.0
+
+# filter resolution input point cloud 
+dataset.pcl.voxel_filter.resolution: 0.002

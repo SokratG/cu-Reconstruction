@@ -19,17 +19,10 @@ public:
 		using Ptr = std::shared_ptr<Vertex>;
 		// The XYZ position of the point.
 		float3 pos;
+		float4 normal;
 
-		/**
-		 * The RGB color of the point.
-		 * @note will be white if RGB data not provided
-		 */
 		uchar3 color;
 
-		/**
-		 * The class ID of the point.
-		 * @note will be 0 if classification data no provided
-		 */
         ui16 classID = 0;
 
 	} __attribute__((packed));
@@ -67,7 +60,7 @@ public:
 	void filter_depth(const r32 depth_threshold_min = std::numeric_limits<r32>::min(), 
 					  const r32 depth_threshold_max = std::numeric_limits<r32>::max());
 	bool add_vertex(const Vertex& v, const ui64 idx);
-	bool add_vertex(const float3 pos, const uchar3 color, const ui64 idx);
+	bool add_vertex(const float3 pos, const uchar3 color, const ui64 idx, const float4 normal = make_float4(0., 0., 0., 0.));
 	void clear();
 	void free();
 	bool save_ply(const std::string& filepath) const;

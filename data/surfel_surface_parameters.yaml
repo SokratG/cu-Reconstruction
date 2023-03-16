@@ -57,4 +57,3 @@ surface.surfels.gp3.max_surf_angle: 0.78539 # 45 degrees
 surface.surfels.gp3.min_angle: 0.17453 # 10 degrees
 surface.surfels.gp3.max_angle: 2.09439 # 120 degrees
 surface.surfels.gp3.normal_consistency: 0 # 0 - false, 1 - true
-

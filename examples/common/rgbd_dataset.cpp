@@ -1,5 +1,4 @@
 #include "rgbd_dataset.hpp"
-#include "cp_exception.hpp"
 
 #include <opencv2/opencv.hpp>
 #include <opencv2/cudaimgproc.hpp>

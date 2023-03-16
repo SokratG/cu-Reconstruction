@@ -41,6 +41,16 @@ PointCloudCNPtr statistical_filter_pc(const PointCloudCNPtr current_pc, const St
 }
 
 
+PointCloudPtr voxel_filter_pc(const PointCloudPtr pcl_pc,
+                              const VoxelFilterConfig& vfc) {
+    pcl::VoxelGrid<PointT> voxel_filter;
+    voxel_filter.setLeafSize(vfc.resolution, vfc.resolution, vfc.resolution);
+    voxel_filter.setInputCloud(pcl_pc);
+    PointCloudPtr filtered_pc(new PointCloud);
+    voxel_filter.filter(*filtered_pc);
+    return filtered_pc;
+}
+
 PointCloudCPtr voxel_filter_pc(const PointCloudCPtr pcl_pc,
                                const VoxelFilterConfig& vfc) {
     pcl::VoxelGrid<PointTC> voxel_filter;
@@ -108,9 +118,21 @@ cudaPointCloud::Ptr pcl_to_cuda_pc(const PointCloudCPtr pcl_pc,
                                    const std::array<r64, 9>& K) {
     cudaPointCloud::Ptr cpc = cudaPointCloud::create(K, pcl_pc->size());
     for (auto idx = 0; idx < cpc->get_total_num_points(); ++idx) {
-        // for opengl / meshlab mult by -1.f
-        float3 pos = make_float3(pcl_pc->points[idx].x, pcl_pc->points[idx].y * -1.f, pcl_pc->points[idx].z * -1.f);
+        float3 pos = make_float3(pcl_pc->points[idx].x, pcl_pc->points[idx].y, pcl_pc->points[idx].z);
         uchar3 color = make_uchar3(pcl_pc->points[idx].r, pcl_pc->points[idx].g, pcl_pc->points[idx].b);
+        cpc->add_vertex(pos, color, idx);
+    }
+
+    cpc->set_total_number_pts();
+    return cpc;
+}
+
+cudaPointCloud::Ptr pcl_to_cuda_pc(const PointCloudPtr pcl_pc,
+                                   const std::array<r64, 9>& K) {
+    cudaPointCloud::Ptr cpc = cudaPointCloud::create(K, pcl_pc->size());
+    for (auto idx = 0; idx < cpc->get_total_num_points(); ++idx) {
+        float3 pos = make_float3(pcl_pc->points[idx].x, pcl_pc->points[idx].y, pcl_pc->points[idx].z);
+        uchar3 color = make_uchar3(255, 255, 255);
         cpc->add_vertex(pos, color, idx);
     }
 

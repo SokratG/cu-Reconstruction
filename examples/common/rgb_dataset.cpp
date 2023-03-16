@@ -1,5 +1,4 @@
 #include "rgb_dataset.hpp"
-#include "cp_exception.hpp"
 #include "utils.hpp"
 
 #include <opencv2/opencv.hpp>
