@@ -3,6 +3,7 @@
 
 #include "cp_exception.hpp"
 #include "cuda/tsdf_volume.cuh"
+#include "cuda/octree.cuh"
 
 #include <glog/logging.h>
 
@@ -11,10 +12,15 @@ namespace cuphoto {
 
 TSDFSurface::TSDFSurface(const Config& cfg) {
     // TODO
+    
 }
 
 void TSDFSurface::reconstruct_surface(const cudaPointCloud::Ptr cuda_pc) {
     // TODO
+    TSDFVolume tsdf_volume;
+
+    tsdf_volume.integrate();
+    
 }
 
 }

@@ -15,6 +15,12 @@ public:
     using Ptr = std::shared_ptr<TSDFVolume>;
 
     TSDFVolume();
+
+    bool integrate();
+public:
+    OctreeNode::Ptr head; // TODO change to octree
+private:
+    OctreeStackAllocator osa;
 };
 
 }
