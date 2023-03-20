@@ -3,10 +3,8 @@
 
 #include "cp_exception.hpp"
 #include "cuda/tsdf_volume.cuh"
-#include "cuda/octree.cuh"
 
 #include <glog/logging.h>
-
 
 namespace cuphoto {
 

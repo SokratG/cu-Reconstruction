@@ -15,12 +15,12 @@ public:
     using Ptr = std::shared_ptr<TSDFVolume>;
 
     TSDFVolume();
+    ~TSDFVolume();
 
     bool integrate();
 public:
-    OctreeNode::Ptr head; // TODO change to octree
-private:
-    OctreeStackAllocator osa;
+    Octree::Ptr octree;
+    // CudaObjectPoolAllocator<OctreeNode::OctreeListNode> oct_node_pa_list;
 };
 
 }
