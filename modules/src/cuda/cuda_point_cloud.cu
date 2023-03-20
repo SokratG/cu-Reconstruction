@@ -9,6 +9,8 @@
 
 namespace cuphoto {
 
+
+// ----------------------------------- Kernels ----------------------------------- 
 __device__ r64 K[3][3] {0};
 
 
@@ -63,6 +65,24 @@ __global__ void point_cloud_extract(const cv::cuda::PtrStepSzf depth,
 }
 
 
+__global__ void transform_points(
+    const float4 quat,  const float3 trans,
+    const ui32 num_pts,
+    cudaPointCloud::Vertex* points) 
+{
+    const i32 pidx = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (pidx >= num_pts)
+        return;
+
+    SE3<r32> transform(quat, trans);
+
+    points[pidx].pos = transform * points[pidx].pos;
+}
+
+
+
+// ===========================================================================
 cudaPointCloud::cudaPointCloud(const std::array<r64, 9>& camera_param, const size_t total_number_pts) 
                                 : device_pts(nullptr), hasRGB(false), num_pts(0)
 {
@@ -187,6 +207,40 @@ bool cudaPointCloud::extract_points(const cv::cuda::PtrStepSzf depth,
 
     return true;
 }
+
+
+bool cudaPointCloud::transform(const std::array<r64, 7>& T) {
+    if (num_pts == 0) {
+        LogError(LOG_CUDA "cudaPointCloud::transform() -- the number of points is 0\n");
+        return false;
+    }
+
+    if (device_pts == nullptr) {
+        LogError(LOG_CUDA "cudaPointCloud::transform() -- the device points is not allocated\n");
+        return false;
+    }
+    
+    const ui32 block_threads = 16;
+
+    const ui32 grid_blocks = iDivUp(num_pts, block_threads);
+
+    float4 quat = make_float4(T[1], T[2], T[3], T[0]);
+    float3 trans = make_float3(T[4], T[5], T[6]);
+
+    // TODO: add start index for transform certain points
+    transform_points<<<grid_blocks, block_threads>>>(quat, trans, num_pts, device_pts);
+
+    if (CUDA_FAILED(cudaGetLastError())) {
+        LogError(LOG_CUDA "cudaPointCloud::transform() -- failed to transform point cloud with CUDA\n");
+        return false;
+    }
+
+    CUDA(cudaDeviceSynchronize());
+
+    return true;
+}
+
+
 
 bool cudaPointCloud::add_vertex(const Vertex& v, const ui64 idx) {
     if (idx >= total_num_pts) {

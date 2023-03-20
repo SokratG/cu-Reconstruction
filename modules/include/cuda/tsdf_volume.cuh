@@ -20,7 +20,6 @@ public:
     bool integrate();
 public:
     Octree::Ptr octree;
-    // CudaObjectPoolAllocator<OctreeNode::OctreeListNode> oct_node_pa_list;
 };
 
 }

@@ -55,6 +55,12 @@ cudaPointCloud::Ptr pcl_to_cuda_pc(const PointCloudCPtr pcl_pc,
 cudaPointCloud::Ptr pcl_to_cuda_pc(const PointCloudPtr pcl_pc,
                                    const std::array<r64, 9>& K);
 
+
+cudaPointCloud::Ptr compute_normals_pc(const cudaPointCloud::Ptr cu_pc, const r64 radius_search, const i32 k_nn);
+
+void transform_cuda_pc(cudaPointCloud::Ptr& cu_pc, const SE3& transform);
+
+
 PointCloudCPtr cuda_pc_to_pcl(const cudaPointCloud::Ptr pcl_pc);
 
 

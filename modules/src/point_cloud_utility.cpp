@@ -4,7 +4,8 @@
 
 #include <pcl/filters/statistical_outlier_removal.h>
 #include <pcl/filters/voxel_grid.h>
-
+#include <pcl/features/normal_3d_omp.h>
+#include <pcl/filters/extract_indices.h>
 
 #include <memory>
 #include <cmath>
@@ -141,6 +142,23 @@ cudaPointCloud::Ptr pcl_to_cuda_pc(const PointCloudPtr pcl_pc,
 }
 
 
+cudaPointCloud::Ptr pcl_to_cuda_pc(const PointCloudCPtr pcl_pc,
+                                   const PointCloudNPtr pcl_normals,
+                                   const std::array<r64, 9>& K) {
+    cudaPointCloud::Ptr cpc = cudaPointCloud::create(K, pcl_pc->size());
+    for (auto idx = 0; idx < cpc->get_total_num_points(); ++idx) {
+        float3 pos = make_float3(pcl_pc->points[idx].x, pcl_pc->points[idx].y, pcl_pc->points[idx].z);
+        uchar3 color = make_uchar3(pcl_pc->points[idx].r, pcl_pc->points[idx].g, pcl_pc->points[idx].b);
+        float4 normal = make_float4(pcl_normals->points[idx].normal_x, pcl_normals->points[idx].normal_y,
+                                    pcl_normals->points[idx].normal_z, pcl_normals->points[idx].curvature);
+        cpc->add_vertex(pos, color, idx, normal);
+    }
+
+    cpc->set_total_number_pts();
+    return cpc;
+}
+
+
 PointCloudCPtr cuda_pc_to_pcl(const cudaPointCloud::Ptr cuda_pc) {
     PointCloudCPtr pcl_pc(new PointCloudC);
     for (auto idx = 0; idx < cuda_pc->get_total_num_points(); ++idx) {
@@ -181,6 +199,44 @@ PointCloudCNPtr transform_point_cloud(const PointCloudCNPtr pcl_pc, const SE3& T
     PointCloudCNPtr pcl_target(new PointCloudCN);
     pcl::transformPointCloud(*pcl_pc, *pcl_target, T.matrix());
     return pcl_target;
+}
+
+
+cudaPointCloud::Ptr compute_normals_pc(const cudaPointCloud::Ptr cu_pc, const r64 radius_search, const i32 k_nn) {
+    const auto pcl_pc = cuda_pc_to_pcl(cu_pc);
+    pcl::NormalEstimationOMP<PointTC, pcl::Normal> ne;
+    pcl::search::KdTree<PointTC>::Ptr tree(new pcl::search::KdTree<PointTC>());
+    PointCloudNPtr cloud_normals(new PointCloudN);
+
+    ne.setSearchMethod(tree);
+    ne.setRadiusSearch(radius_search);
+    ne.setKSearch(k_nn);
+    ne.setInputCloud(pcl_pc);
+    ne.compute(*cloud_normals);
+
+    PointCloudCPtr filter_pc(new PointCloudC);
+    PointCloudNPtr filter_normals(new PointCloudN);
+    pcl::PointIndices::Ptr pt_inds(new pcl::PointIndices());
+
+    pcl::removeNaNNormalsFromPointCloud(*cloud_normals, *filter_normals, pt_inds->indices);
+    pcl::ExtractIndices<PointTC> extract;
+    extract.setInputCloud(pcl_pc);
+    extract.setIndices(pt_inds);
+    extract.filter(*filter_pc);
+
+    cudaPointCloud::Ptr cuda_normal_pc = pcl_to_cuda_pc(filter_pc, filter_normals, cu_pc->get_camera_parameters());
+
+    return cuda_normal_pc;
+}
+
+
+
+void transform_cuda_pc(cudaPointCloud::Ptr& cu_pc, const SE3& pose) {
+    Mat3 R = pose.rotationMatrix();
+    Vec3 t = pose.translation();
+    cuphoto::Quat q(R);
+    std::array<r64, 7> T {q.w(), q.x(), q.y(), q.z(), t.x(), t.y(), t.z()};
+    cu_pc->transform(T);
 }
 
 

@@ -11,3 +11,7 @@ camera.cy: 320.0
 
 # filter resolution input point cloud 
 dataset.pcl.voxel_filter.resolution: 0.002
+
+
+pcl.normals.radius_search: 0.03
+pcl.normals.k_nn: 0

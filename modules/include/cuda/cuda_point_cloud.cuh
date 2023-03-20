@@ -16,7 +16,7 @@ class cudaPointCloud
 public:
 	struct Vertex
 	{
-		using Ptr = std::shared_ptr<Vertex>;
+		using Ptr = Vertex*;
 		// The XYZ position of the point.
 		float3 pos;
 		float4 normal;
@@ -56,6 +56,8 @@ public:
 						const cv::cuda::PtrStepb colors,
 						const std::array<r64, 7>& transform,
 						const i32 frame_idx);
+
+	bool transform(const std::array<r64, 7>& transform);
 
 	void filter_depth(const r32 depth_threshold_min = std::numeric_limits<r32>::min(), 
 					  const r32 depth_threshold_max = std::numeric_limits<r32>::max());

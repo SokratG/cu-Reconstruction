@@ -12,7 +12,8 @@ public:
 
     void reconstruct_surface(const cudaPointCloud::Ptr cuda_pc) override;
 private:
-    
+    r64 normals_radius_search;
+    i32 k_nn;
 };
 
 }

@@ -28,7 +28,7 @@ using r64 = double;
 using ch = char;
 using uch = unsigned char;
 
-// Eigen matrix
+// Eigen matrix and quaternion
 using MatXX = Eigen::Matrix<r64, Eigen::Dynamic, Eigen::Dynamic>;
 using Mat22 = Eigen::Matrix<r64, 2, 2>;
 using Mat33 = Eigen::Matrix<r64, 3, 3>;
@@ -69,6 +69,10 @@ using Vec2f = Eigen::Matrix<r32, 2, 1>;
 
 using Vec2i = Eigen::Matrix<i64, 2, 1>;
 using Vec3i = Eigen::Matrix<i64, 3, 1>;
+
+using Quat = Eigen::Quaterniond;
+using Quatf = Eigen::Quaternionf;
+
 
 // Sophus
 using SE3 = Sophus::SE3d;

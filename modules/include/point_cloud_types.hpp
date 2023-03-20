@@ -18,7 +18,8 @@ using PointCloudC = pcl::PointCloud<PointTC>;
 using PointCloudCPtr = pcl::PointCloud<PointTC>::Ptr;
 using PointCloudCN = pcl::PointCloud<PointTCN>;
 using PointCloudCNPtr = pcl::PointCloud<PointTCN>::Ptr;
-
+using PointCloudN = pcl::PointCloud<pcl::Normal>;
+using PointCloudNPtr = pcl::PointCloud<pcl::Normal>::Ptr;
 
 };
 
