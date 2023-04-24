@@ -15,3 +15,23 @@ dataset.pcl.voxel_filter.resolution: 0.002
 
 pcl.normals.radius_search: 0.03
 pcl.normals.k_nn: 0
+
+
+# tsdf volume config
+tsdf.volume.voxel_size: 0.3
+tsdf.volume.resolution_size: 512
+tsdf.volume.max_dist_p: 0.3
+tsdf.volume.max_dist_n: -0.3
+tsdf.volume.max_weight: 100.0
+tsdf.volume.min_sensor_dist: 0.1
+tsdf.volume.max_sensor_dist: 3.0
+tsdf.volume.weight_type: 0 # 0 - weight by depth, 1 - weight by variance
+tsdf.volume.max_cell_size: 0.5
+tsdf.volume.use_trilinear_interpolation: 1 # 0 - false, 1 - true
+tsdf.volume.num_rand_split: 1
+tsdf.volume.reserve_pool_size: 30000
+
+tsdf.volume.octree.center.x: 0
+tsdf.volume.octree.center.y: 0
+tsdf.volume.octree.center.z: 0
+tsdf.volume.octree.center.n_level_split: 0

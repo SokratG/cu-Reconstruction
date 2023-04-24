@@ -9,6 +9,8 @@
 
 namespace cuphoto {
 
+#define INSIDE_VIEW 1
+#define OUTSIDE_VIEW -INSIDE_VIEW
 
 class OctreeNode {
 public:
@@ -46,10 +48,13 @@ public:
 
     __host__ __device__ i32 num_sample() const;
     
-    __host__ __device__ r32 weigheted_mean() const;
+    __host__ __device__ r32 weighted_mean() const;
 
     __host__ __device__ r32 distance() const;
     __host__ __device__ void distance(const r32 dist);
+
+    __host__ __device__ bool in_view() const;
+    __host__ __device__ void in_view(const i32 inside_view /*1 inside, other outside*/);
 
     __host__ __device__ r32 max_size() const;
 
@@ -98,9 +103,10 @@ private:
     float3 _color;
     r32 _weight;
     i32 _n_sample;
-    r32 _weigheted_mean;
+    r32 _weighted_mean;
     r32 _dist;
     r32 _voxel_size;
+    i32 _in_view;
 };
 
 
@@ -113,17 +119,17 @@ public:
     static constexpr r32 split_factor = 0.693147;
 public:
     __host__ static Octree* create_octree(const r32 resolution_size);
-    __host__ static Octree* create_octree(const ui64 octree_pool_size, const r32 resolution_size);
+    __host__ static Octree* create_octree(const ui32 octree_pool_size, const r32 resolution_size);
     __host__ static void free_octree(Octree* octree);
 
-    __host__ void reserve_pool(const ui64 octree_pool_size);
+    __host__ void reserve_pool(const ui32 octree_pool_size);
 
     __host__ __device__ r32 resolution_size() const;
 
     __host__ bool build_octree(const i32 n_level_split, const float3 center = make_float3(0., 0., 0.));
-    __host__ bool build_octree(const ui64 octree_pool_size, const i32 n_level_split, const float3 center = make_float3(0., 0., 0.));
+    __host__ bool build_octree(const ui32 octree_pool_size, const i32 n_level_split, const float3 center = make_float3(0., 0., 0.));
     __host__ bool build_octree(const float3 max_resolution_size, const float3 center = make_float3(0., 0., 0.));
-    __host__ bool build_octree(const ui64 octree_pool_size, const float3 max_resolution_size, const float3 center = make_float3(0., 0., 0.));
+    __host__ bool build_octree(const ui32 octree_pool_size, const float3 max_resolution_size, const float3 center = make_float3(0., 0., 0.));
 
     __host__ __device__ static i32 desire_octree_levels(const float3 max_resolution_size, const r32 voxel_resolution_size);
 
@@ -146,7 +152,7 @@ protected:
 
     Octree(const r32 resolution_size);
 
-    Octree(const ui64 octree_pool_size, const r32 resolution_size);
+    Octree(const ui32 octree_pool_size, const r32 resolution_size);
 
     __host__ void resolution_size(const r32 resolution_size);
 private:

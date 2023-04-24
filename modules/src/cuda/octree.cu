@@ -22,15 +22,15 @@ OctreeNode::Ptr OctreeNode::create_node(CudaObjectPoolAllocator<OctreeNode>::Ref
 
 OctreeNode::OctreeNode() :
     _center(make_float3(0., 0., 0.)), _voxel_size(0.), _color(make_float3(0., 0., 0.)),
-    _dist(-1.), _weight(0.), 
-    _weigheted_mean(0.), _n_sample(0) {
+    _dist(-1.), _weight(0.), _in_view(OUTSIDE_VIEW),
+    _weighted_mean(0.), _n_sample(0) {
 
 }
 
 OctreeNode::OctreeNode(const float3 center, const r32 size, const float3 color) : 
     _center(center), _voxel_size(size), _color(color),
-    _dist(-1.), _weight(0.), 
-    _weigheted_mean(0.), _n_sample(0) {
+    _dist(-1.), _weight(0.), _in_view(OUTSIDE_VIEW),
+    _weighted_mean(0.), _n_sample(0) {
 
 }
 
@@ -71,8 +71,8 @@ i32 OctreeNode::num_sample() const {
     return _n_sample;
 }
 
-r32 OctreeNode::weigheted_mean() const {
-    return _weigheted_mean;
+r32 OctreeNode::weighted_mean() const {
+    return _weighted_mean;
 }
 
 r32 OctreeNode::distance() const {
@@ -81,6 +81,16 @@ r32 OctreeNode::distance() const {
 
 void OctreeNode::distance(const r32 dist) {
     _dist = dist;
+}
+
+
+bool OctreeNode::in_view() const {
+    return _in_view == INSIDE_VIEW; 
+}
+
+
+void OctreeNode::in_view(const i32 inside_view) {
+    _in_view = inside_view;
 }
 
 r32 OctreeNode::max_size() const {
@@ -116,14 +126,14 @@ void OctreeNode::add_observation(const r32 dist, const r32 weight, const r32 max
     _weight += weight;
     if (_weight > max_weight)
         _weight = max_weight;
-    _weigheted_mean += weight * (dist - _dist) * (dist - prev_dist);
+    _weighted_mean += weight * (dist - _dist) * (dist - prev_dist);
     _n_sample += 1;
 }
 
 bool OctreeNode::variance(r32& variance_value, const i32 min_sample) const {
     if (_n_sample < min_sample)
         return false;
-    variance_value = (_weigheted_mean / _weight) * (_n_sample / (_n_sample - 1));
+    variance_value = (_weighted_mean / _weight) * (_n_sample / (_n_sample - 1));
     return true;
 }
 
@@ -265,7 +275,7 @@ Octree::Octree(const r32 resolution_size) :
                _voxel_resolution_size(resolution_size), octree_root(nullptr) {
 }
 
-Octree::Octree(const ui64 octree_pool_size, const r32 resolution_size) :
+Octree::Octree(const ui32 octree_pool_size, const r32 resolution_size) :
                _voxel_resolution_size(resolution_size), octree_root(nullptr) {
     oct_node_pa.reserve(octree_pool_size);
 }
@@ -276,7 +286,7 @@ Octree::Ptr Octree::create_octree(const r32 resolution_size) {
     return octree;
 }
 
-Octree::Ptr Octree::create_octree(const ui64 octree_pool_size, const r32 resolution_size) {
+Octree::Ptr Octree::create_octree(const ui32 octree_pool_size, const r32 resolution_size) {
     Octree::Ptr octree = new Octree(octree_pool_size, resolution_size);
     return octree;
 }
@@ -289,7 +299,7 @@ void Octree::free_octree(Octree::Ptr octree) {
     delete octree;
 }
 
-void Octree::reserve_pool(const ui64 octree_pool_size) {
+void Octree::reserve_pool(const ui32 octree_pool_size) {
     oct_node_pa.reserve(octree_pool_size);
 }
 
@@ -326,12 +336,12 @@ bool Octree::build_octree(const float3 max_resolution_size, const float3 center)
 }
 
 
-bool Octree::build_octree(const ui64 octree_pool_size, const i32 n_level_split, const float3 center) {
+bool Octree::build_octree(const ui32 octree_pool_size, const i32 n_level_split, const float3 center) {
     reserve_pool(octree_pool_size);
     return build_octree(n_level_split, center);
 }
 
-bool Octree::build_octree(const ui64 octree_pool_size, const float3 max_resolution_size, const float3 center) {
+bool Octree::build_octree(const ui32 octree_pool_size, const float3 max_resolution_size, const float3 center) {
     reserve_pool(octree_pool_size);
     const i32 n_split_level =  desire_octree_levels(max_resolution_size, _voxel_resolution_size);
     return build_octree(n_split_level, center);

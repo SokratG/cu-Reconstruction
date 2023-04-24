@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.22)
 
-add_subdirectory(mv_dense_rgbd)
-add_subdirectory(sparse)
-add_subdirectory(monodepth)
-add_subdirectory(stereodepth)
-add_subdirectory(surfel_surface_reconstruction)
+# add_subdirectory(mv_dense_rgbd)
+# add_subdirectory(sparse)
+# add_subdirectory(monodepth)
+# add_subdirectory(stereodepth)
+# add_subdirectory(surfel_surface_reconstruction)
 add_subdirectory(tsdf_surface_reconstruction)
