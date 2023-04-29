@@ -15,6 +15,7 @@ namespace cuphoto {
 class OctreeNode {
 public:
     using Ptr = OctreeNode*;
+    using PPtr = OctreeNode**;
 
     struct OctreeListNode {
         using Ptr = OctreeListNode*;
@@ -58,7 +59,7 @@ public:
 
     __host__ __device__ r32 max_size() const;
 
-    __host__ __device__ OctreeNode::Ptr query_voxel(const float3 pt, const r32 query_size);
+    __host__ __device__ OctreeNode::Ptr query_voxel(const float3 pt, const r32 query_size =-1.0);
 
     __host__ __device__ void add_observation(const r32 dist, const r32 weight, const r32 max_weight, const float3 rgb);
 
@@ -117,6 +118,8 @@ public:
     using Ptr = Octree*;
 
     static constexpr r32 split_factor = 0.693147;
+public:
+    CudaObjectPoolAllocator<OctreeNode>& allocator();
 public:
     __host__ static Octree* create_octree(const r32 resolution_size);
     __host__ static Octree* create_octree(const ui32 octree_pool_size, const r32 resolution_size);

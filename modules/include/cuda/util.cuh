@@ -4,6 +4,9 @@
 #include "types.cuh"
 #include <stdio.h>
 #include <cuda_runtime.h>
+#include <curand.h>
+#include <curand_kernel.h>
+
 
 #include <opencv2/core/cuda/common.hpp>
 
@@ -24,6 +27,10 @@ void normalizeUsingWeightMapGpu32F(const cv::cuda::PtrStepf weight, cv::cuda::Pt
 cudaError_t disparity_to_depth(const cv::cuda::PtrStepSz<sh16> input_data, r32* output_data, 
                                const r32 focal, const r32 baseline, const r32 depth_scale = 1.0);
 
+
+cudaError_t setup_cuda_rand_state(curandState* cu_rand_state);
+
+cudaError_t generate_random_float3(curandState* cu_rand_state, const r32 scale, float3& rand_vec);
 
 };
 

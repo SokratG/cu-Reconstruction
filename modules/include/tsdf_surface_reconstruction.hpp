@@ -32,6 +32,7 @@ private:
     i32 weight_type;
     r32 max_cell_size;
     i32 num_rand_split;
+    ui32 pool_size;
     i32 n_level_split;
     Vec3 center_octree;
     bool use_trilinear_interpolation;

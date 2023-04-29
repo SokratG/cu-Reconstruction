@@ -28,6 +28,7 @@ TSDFSurface::TSDFSurface(const Config& cfg) {
     weight_type = cfg.get<i32>("tsdf.volume.weight_type", 0);
     max_cell_size = cfg.get<r32>("tsdf.volume.max_cell_size");
     num_rand_split = cfg.get<i32>("tsdf.volume.num_rand_split", 1);
+    pool_size = cfg.get<i32>("tsdf.volume.reserve_pool_size", 0);
     n_level_split = cfg.get<i32>("tsdf.volume.octree.center.n_level_split", 0);
 
     const r32 center_x = cfg.get<r32>("tsdf.volume.octree.center.x", 0.);
@@ -69,10 +70,11 @@ void TSDFSurface::reconstruct_surface(const cudaPointCloud::Ptr cuda_pc) {
     tsdf_cfg.max_cell_size= max_cell_size;
     tsdf_cfg.num_rand_split = num_rand_split;
     tsdf_cfg.n_level_split = n_level_split;
+    tsdf_cfg.pool_size = pool_size;
     tsdf_cfg.center_octree = make_float3(center_octree.x(), center_octree.y(), center_octree.z());
     tsdf_cfg.use_trilinear_interpolation = use_trilinear_interpolation;
 
-    TSDFVolume tsdf_volume(tsdf_cfg);
+    TSDFVolume tsdf_volume(tsdf_cfg, tsdf_cfg.pool_size);
 
     const auto cuda_normals_pc = compute_normals_pc(cuda_pc, normals_radius_search, k_nn);
 

@@ -2,10 +2,28 @@
 #include "CudaUtils/cudaUtility.cuh"
 
 
+
+
 namespace cuphoto {
 
 __host__ inline int divUp(int a, int b){
 	return ((a % b) != 0) ? (a / b + 1) : (a / b);
+}
+
+
+__global__ void random_float3_kernel(curandState* curandstate, const r32 scale, float3& value) {
+    const i32 idx = blockIdx.x * blockDim.x + threadIdx.x;
+    const r32 randf_x = curand_uniform(curandstate + idx) * scale;
+    const r32 randf_y = curand_uniform(curandstate + idx + 1) * scale;
+    const r32 randf_z = curand_uniform(curandstate + idx + 2) * scale;
+
+    value = make_float3(randf_x, randf_y, randf_z);
+}
+
+__global__ void setup_cuda_random_state_kernel(curandState* curandstate) {
+    const i32 idx = threadIdx.x + blockDim.x * blockIdx.x; // subsequence
+    const i32 seed = 1234;
+    curand_init(seed, idx, 0, &curandstate[idx]); // 0 - offset
 }
 
 
@@ -77,6 +95,28 @@ cudaError_t disparity_to_depth(const cv::cuda::PtrStepSz<sh16> input_data, r32* 
                                                         focal, baseline, depth_scale);
     
     return CUDA(cudaGetLastError());
+}
+
+
+
+cudaError_t setup_cuda_rand_state(curandState* cu_rand_state) {
+    if (!cu_rand_state)
+        return cudaErrorInvalidDevicePointer;
+
+    setup_cuda_random_state_kernel<<<1, 1>>>(cu_rand_state);
+
+    return CUDA(cudaGetLastError());
+}
+
+cudaError_t generate_random_float3(curandState* cu_rand_state, const r32 scale, float3& rand_vec) {
+    if (!cu_rand_state)
+        return cudaErrorInvalidDevicePointer;
+    
+    rand_vec = make_float3(0, 0, 0);
+
+    random_float3_kernel<<<1, 1>>>(cu_rand_state, scale, rand_vec);
+    
+    return CUDA(cudaGetLastError()); 
 }
 
 };

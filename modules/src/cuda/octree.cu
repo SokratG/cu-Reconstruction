@@ -1,6 +1,5 @@
 #include "octree.cuh"
 
-
 namespace cuphoto {
 
 // -------------------------- Octree Node --------------------------
@@ -410,6 +409,10 @@ ui32 Octree::count_voxels() const {
     if (octree_root == nullptr)
         return 0;
     return octree_root->count_voxels();
+}
+
+CudaObjectPoolAllocator<OctreeNode>& Octree::allocator() {
+    return oct_node_pa;
 }
 
 }

@@ -18,7 +18,7 @@ pcl.normals.k_nn: 0
 
 
 # tsdf volume config
-tsdf.volume.voxel_size: 0.3
+tsdf.volume.voxel_size: 0.1
 tsdf.volume.resolution_size: 512
 tsdf.volume.max_dist_p: 0.3
 tsdf.volume.max_dist_n: -0.3
@@ -29,7 +29,7 @@ tsdf.volume.weight_type: 0 # 0 - weight by depth, 1 - weight by variance
 tsdf.volume.max_cell_size: 0.5
 tsdf.volume.use_trilinear_interpolation: 1 # 0 - false, 1 - true
 tsdf.volume.num_rand_split: 1
-tsdf.volume.reserve_pool_size: 30000
+tsdf.volume.reserve_pool_size: 40000
 
 tsdf.volume.octree.center.x: 0
 tsdf.volume.octree.center.y: 0

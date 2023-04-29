@@ -42,7 +42,7 @@ public:
 
 	inline ui64 get_size() const { return num_pts * sizeof(Vertex); }
 
-	inline Vertex* get_data(const ui64 index) const	{ return device_pts + index; }
+	inline Vertex* get_vertex(const ui64 index) const	{ return device_pts + index; }
 
 	inline Vertex* get_points() const { return device_pts; }
 

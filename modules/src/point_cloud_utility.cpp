@@ -162,7 +162,7 @@ cudaPointCloud::Ptr pcl_to_cuda_pc(const PointCloudCPtr pcl_pc,
 PointCloudCPtr cuda_pc_to_pcl(const cudaPointCloud::Ptr cuda_pc) {
     PointCloudCPtr pcl_pc(new PointCloudC);
     for (auto idx = 0; idx < cuda_pc->get_total_num_points(); ++idx) {
-        cudaPointCloud::Vertex* v = cuda_pc->get_data(idx);
+        cudaPointCloud::Vertex* v = cuda_pc->get_vertex(idx);
         PointTC p;
         p.x = v->pos.x;
         p.y = v->pos.y;
