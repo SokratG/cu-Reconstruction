@@ -4,6 +4,10 @@
 #include "CudaUtils/cudaUtility.cuh"
 #include "CudaUtils/logging.h"
 
+#include "util.cuh"
+
+#include <opencv2/core/core.hpp>
+
 #include <numeric>
 #include <fstream>
 
@@ -12,6 +16,7 @@ namespace cuphoto {
 
 // ----------------------------------- Kernels ----------------------------------- 
 __device__ r64 K[3][3] {0};
+
 
 
 template<bool useRGB = false>
@@ -80,6 +85,18 @@ __global__ void transform_points(
     points[pidx].pos = transform * points[pidx].pos;
 }
 
+
+__global__ void filter_image_if(cv::cuda::PtrStepSzf depth, const r32 filter_value, const r32 set_value) {
+    const i32 x = blockIdx.x * blockDim.x + threadIdx.x;
+	const i32 y = blockIdx.y * blockDim.y + threadIdx.y;
+
+    if (x >= depth.cols || y >= depth.rows)
+		return;
+    
+    const r32 dval = depth.ptr(y)[x];
+    if (near_equal(dval, filter_value))
+        depth.ptr(y)[x] = set_value;
+}
 
 
 // ===========================================================================
@@ -205,6 +222,133 @@ bool cudaPointCloud::extract_points(const cv::cuda::PtrStepSzf depth,
 
     CUDA(cudaDeviceSynchronize());
 
+    return true;
+}
+
+
+bool cudaPointCloud::project_to_depth(cv::cuda::PtrStepSzf depth,
+                                      const std::array<r64, 7>& camera_pose) {
+    if (!depth) {
+        LogError(LOG_CUDA "cudaPointCloud::project_to_depth() -- depth map is null pointer\n");
+        return false;
+    }
+
+    const ui32 width = depth.cols;
+    const ui32 height = depth.rows;
+
+    if (width == 0 || height == 0) {
+        LogError(LOG_CUDA "cudaPointCloud::project_to_depth() -- depth width/height parameters are zero\n");
+        return false;
+    }
+
+    float4 quat = make_float4(camera_pose[1], camera_pose[2], camera_pose[3], camera_pose[0]);
+    float3 trans = make_float3(camera_pose[4], camera_pose[5], camera_pose[6]);
+    SE3<r32> transform(quat, trans);
+
+    const r32 fx = camera_matrix[0];
+    const r32 fy = camera_matrix[4];
+    const r32 cx = camera_matrix[2];
+    const r32 cy = camera_matrix[5];
+
+    // for avoid race condition
+    cv::Mat cpu_depth(cv::Size(width, height), CV_32F);
+    cpu_depth.setTo(std::numeric_limits<r32>::max());
+    for (i32 idx = 0; idx < num_pts; ++idx) {
+        Vertex::Ptr v = get_vertex(idx);
+        float3 cam_pt = transform * v->pos; // world to camera
+        if (cam_pt.z == 0.)
+            continue;
+        // camera to pixel
+        i32 px_x = static_cast<i32>((cam_pt.x * fx) / cam_pt.z + cx);
+        i32 px_y = static_cast<i32>((cam_pt.y * fy) / cam_pt.z + cy);
+        if (px_x < 0 || px_x >= width || px_y < 0 || px_y >= height)
+            continue;
+        const r32 depth_val = cpu_depth.at<r32>(px_y, px_x);
+        if (depth_val > cam_pt.z) {
+            cpu_depth.at<r32>(px_y, px_x) = cam_pt.z;
+        }
+    }
+
+    CUDA(cudaMemcpy(depth, cpu_depth.ptr<r32>(), width * height * sizeof(r32), cudaMemcpyHostToDevice));
+
+
+    const dim3 blockDim(8, 8);
+    const dim3 gridDim(iDivUp(width, blockDim.x), iDivUp(height, blockDim.y), 1);
+    const r32 filter_value = std::numeric_limits<r32>::max();
+    filter_image_if<<<gridDim, blockDim>>>(depth, filter_value, 0.0f);
+
+    if (CUDA_FAILED(cudaGetLastError())) {
+        LogError(LOG_CUDA "cudaPointCloud::project_to_depth() -- failed to filter image from pts cloud CUDA\n");
+        return false;
+    }
+
+    CUDA(cudaDeviceSynchronize());
+
+    return true;
+}
+
+
+
+bool cudaPointCloud::project_to_color_depth(cv::cuda::PtrStepSzb color, cv::cuda::PtrStepSzf depth,
+                                            const std::array<r64, 7>& camera_pose) {
+    if (!depth || !color) {
+        LogError(LOG_CUDA "cudaPointCloud::project_to_depth() -- depth or color map is null pointer\n");
+        return false;
+    }
+
+    const ui32 width = depth.cols;
+    const ui32 height = depth.rows;
+
+    if (width == 0 || height == 0) {
+        LogError(LOG_CUDA "cudaPointCloud::project_to_depth() -- depth width/height parameters are zero\n");
+        return false;
+    }
+
+    float4 quat = make_float4(camera_pose[1], camera_pose[2], camera_pose[3], camera_pose[0]);
+    float3 trans = make_float3(camera_pose[4], camera_pose[5], camera_pose[6]);
+    SE3<r32> transform(quat, trans);
+
+    const r32 fx = camera_matrix[0];
+    const r32 fy = camera_matrix[4];
+    const r32 cx = camera_matrix[2];
+    const r32 cy = camera_matrix[5];
+
+    // for avoid race condition
+    cv::Mat cpu_depth(cv::Size(width, height), CV_32F);
+    cv::Mat cpu_color(cv::Size(width, height), CV_8UC3);
+    cpu_depth.setTo(std::numeric_limits<r32>::max());
+    cpu_color.setTo(cv::Scalar(0, 0, 0));
+    for (i32 idx = 0; idx < num_pts; ++idx) {
+        Vertex::Ptr v = get_vertex(idx);
+        float3 cam_pt = transform * v->pos; // world to camera
+        if (cam_pt.z == 0.)
+            continue;
+        // camera to pixel
+        i32 px_x = static_cast<i32>((cam_pt.x * fx) / cam_pt.z + cx);
+        i32 px_y = static_cast<i32>((cam_pt.y * fy) / cam_pt.z + cy);
+        if (px_x < 0 || px_x >= width || px_y < 0 || px_y >= height)
+            continue;
+        const r32 depth_val = cpu_depth.at<r32>(px_y, px_x);
+        if (depth_val > cam_pt.z) {
+            cpu_depth.at<r32>(px_y, px_x) = cam_pt.z;
+            cpu_color.at<cv::Vec3b>(cv::Point(px_x, px_y)) = cv::Vec3b(v->color.x, v->color.y, v->color.z);
+        }
+    }
+
+    CUDA(cudaMemcpy(depth, cpu_depth.ptr<r32>(), height * depth.step, cudaMemcpyHostToDevice));
+    CUDA(cudaMemcpy(color.data, cpu_color.ptr<uchar>(), height * color.step, cudaMemcpyHostToDevice));
+
+    const dim3 blockDim(8, 8);
+    const dim3 gridDim(iDivUp(width, blockDim.x), iDivUp(height, blockDim.y), 1);
+    const r32 filter_value = std::numeric_limits<r32>::max();
+    filter_image_if<<<gridDim, blockDim>>>(depth, filter_value, 0.0f);
+
+    if (CUDA_FAILED(cudaGetLastError())) {
+        LogError(LOG_CUDA "cudaPointCloud::project_to_depth() -- failed to filter image from pts cloud CUDA\n");
+        return false;
+    }
+
+    CUDA(cudaDeviceSynchronize());
     return true;
 }
 

@@ -7,8 +7,8 @@
 #include <curand.h>
 #include <curand_kernel.h>
 
-
 #include <opencv2/core/cuda/common.hpp>
+
 
 namespace cuphoto {
 
@@ -31,6 +31,14 @@ cudaError_t disparity_to_depth(const cv::cuda::PtrStepSz<sh16> input_data, r32* 
 cudaError_t setup_cuda_rand_state(curandState* cu_rand_state);
 
 cudaError_t generate_random_float3(curandState* cu_rand_state, const r32 scale, float3& rand_vec);
+
+__device__ bool near_equal(const r32 a, const r32 b);
+
+__device__ bool get_trilinear_elements(const float3 point, 
+                                       const dim3 grid_size,
+                                       const float3 voxel_size,
+                                       i32* indices,
+                                       r32* coefficients); 
 
 };
 

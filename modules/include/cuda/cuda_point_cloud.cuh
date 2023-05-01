@@ -56,6 +56,13 @@ public:
 						const cv::cuda::PtrStepb colors,
 						const std::array<r64, 7>& transform,
 						const i32 frame_idx);
+	
+	bool project_to_depth(cv::cuda::PtrStepSzf depth,
+						  const std::array<r64, 7>& camera_pose);
+	
+	bool project_to_color_depth(cv::cuda::PtrStepSzb color,
+								cv::cuda::PtrStepSzf depth,
+						  		const std::array<r64, 7>& camera_pose);
 
 	bool transform(const std::array<r64, 7>& transform);
 

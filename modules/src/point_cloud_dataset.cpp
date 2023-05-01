@@ -11,6 +11,10 @@
 namespace cuphoto {
 
 PointCloudDataset::PointCloudDataset(const Config& cfg) {
+    fx = cfg.get<r32>("camera.fx", 1.);
+    fy = cfg.get<r32>("camera.fy", 1.);
+    cx = cfg.get<r32>("camera.cx", 0.);
+    cy = cfg.get<r32>("camera.cy", 0.);
     _data_path = cfg.get<std::string>("dataset.path");
     color_mode = static_cast<bool>(cfg.get<i32>("dataset.color.mode", 0));
     voxel_fiter_resolution = cfg.get<r32>("dataset.pcl.voxel_filter.resolution", 0.0001);
@@ -23,7 +27,7 @@ POINTCLOUDPtr PointCloudDataset::get_next() {
         throw CuPhotoException("All files in directory was traversed! Use reset for iterate again.");
     }
 
-    std::array<r64, 9> K{1, 0, 0, 0, 1, 0, 0, 1};
+    std::array<r64, 9> K{fx, 0, cx, 0, fy, cy, 0, 0, 1};
     cudaPointCloud::Ptr cpc;
     if (color_mode)
         cpc = handle_pc_rgb(*current_file, K);

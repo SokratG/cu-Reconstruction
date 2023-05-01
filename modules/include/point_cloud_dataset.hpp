@@ -48,6 +48,10 @@ protected:
     virtual POINTCLOUDPtr handle_pc(const std::string& data_path, const std::array<r64, 9>& K);
 
 private:
+    r32 fx;
+    r32 fy;
+    r32 cx;
+    r32 cy;
     const std::set<std::string> extensions {".ply"};
     std::string _data_path;
     std::set<std::string> files;

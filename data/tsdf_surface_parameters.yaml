@@ -6,11 +6,13 @@ mesh_store.path: "./mesh_tsdf_bunny.ply"
 
 camera.fx: 719.5459
 camera.fy: 719.5459
-camera.cx: 240.0
-camera.cy: 320.0
+camera.cx: 320.0
+camera.cy: 240.0
+camera.width: 640
+camera.height: 480
 
 # filter resolution input point cloud 
-dataset.pcl.voxel_filter.resolution: 0.002
+dataset.pcl.voxel_filter.resolution: 0.0015 # 0.002
 
 
 pcl.normals.radius_search: 0.03
@@ -18,20 +20,24 @@ pcl.normals.k_nn: 0
 
 
 # tsdf volume config
-tsdf.volume.voxel_size: 0.1
-tsdf.volume.resolution_size: 512
-tsdf.volume.max_dist_p: 0.3
-tsdf.volume.max_dist_n: -0.3
-tsdf.volume.max_weight: 100.0
-tsdf.volume.min_sensor_dist: 0.1
-tsdf.volume.max_sensor_dist: 3.0
-tsdf.volume.weight_type: 0 # 0 - weight by depth, 1 - weight by variance
-tsdf.volume.max_cell_size: 0.5
-tsdf.volume.use_trilinear_interpolation: 1 # 0 - false, 1 - true
-tsdf.volume.num_rand_split: 1
-tsdf.volume.reserve_pool_size: 40000
+tsdf.volume.voxel_grid_size.x: 100
+tsdf.volume.voxel_grid_size.y: 100
+tsdf.volume.voxel_grid_size.z: 100
+tsdf.volume.physical_size.x: 1.0
+tsdf.volume.physical_size.y: 1.0
+tsdf.volume.physical_size.z: 1.0
+tsdf.volume.max_weight: 15.0
 
-tsdf.volume.octree.center.x: 0
-tsdf.volume.octree.center.y: 0
-tsdf.volume.octree.center.z: 0
-tsdf.volume.octree.center.n_level_split: 0
+
+# tsdf.volume.octree.center.x: 0
+# tsdf.volume.octree.center.y: 0
+# tsdf.volume.octree.center.z: 0
+# tsdf.volume.octree.center.n_level_split: 0
+
+
+tsdf.volume.camera.pose.translation.x: 0.015
+tsdf.volume.camera.pose.translation.y: -0.1
+tsdf.volume.camera.pose.translation.z: -0.25
+tsdf.volume.camera.pose.euler.roll: 0.0 # degree
+tsdf.volume.camera.pose.euler.yaw: 30.0 # degree
+tsdf.volume.camera.pose.euler.pitch: 0.0 # degree

@@ -1,13 +1,23 @@
 #include "util.cuh"
 #include "CudaUtils/cudaUtility.cuh"
 
-
-
-
 namespace cuphoto {
 
-__host__ inline int divUp(int a, int b){
-	return ((a % b) != 0) ? (a / b + 1) : (a / b);
+__device__ const r32 EPSILON = 1e-10;
+
+__device__ bool near_equal(const r32 a, const r32 b) {
+    return fabs(a - b) < EPSILON;
+}
+
+// __host__ inline int divUp(int a, int b){
+// 	return ((a % b) != 0) ? (a / b + 1) : (a / b);
+// }
+
+
+__device__ bool get_trilinear_elements(const float3 point, const dim3 grid_size, const float3 voxel_size, 
+                                       i32* indices, r32* coefficients) {
+    // TODO
+    return true;
 }
 
 
@@ -72,7 +82,7 @@ void normalizeUsingWeightMapGpu32F(const cv::cuda::PtrStepf weight, cv::cuda::Pt
                                    const i32 width, const i32 height)
 {
     dim3 blockDim(8, 8);
-    dim3 gridDim(divUp(width, blockDim.x), divUp(height, blockDim.y));
+    dim3 gridDim(iDivUp(width, blockDim.x), iDivUp(height, blockDim.y));
     normalizeUsingWeightKernel32F<<<gridDim, blockDim>>> (weight, src, width, height);
 }
 
@@ -88,7 +98,7 @@ cudaError_t disparity_to_depth(const cv::cuda::PtrStepSz<sh16> input_data, r32* 
         return cudaErrorInvalidValue;
     
     dim3 blockDim(8, 8, 1);
-    dim3 gridDim(divUp(input_data.cols, blockDim.x), divUp(input_data.rows, blockDim.y), 1);
+    dim3 gridDim(iDivUp(input_data.cols, blockDim.x), iDivUp(input_data.rows, blockDim.y), 1);
     
     disparity_to_depth_kernel<<<gridDim, blockDim, 1>>>(input_data, output_data, 
                                                         input_data.cols, input_data.rows, 
@@ -96,7 +106,6 @@ cudaError_t disparity_to_depth(const cv::cuda::PtrStepSz<sh16> input_data, r32* 
     
     return CUDA(cudaGetLastError());
 }
-
 
 
 cudaError_t setup_cuda_rand_state(curandState* cu_rand_state) {

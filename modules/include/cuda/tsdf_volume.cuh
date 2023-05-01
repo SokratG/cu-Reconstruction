@@ -2,9 +2,8 @@
 #define CUPHOTO_LIB_TSDF_VOLUME_CUH
 
 #include "types.cuh"
-#include "octree.cuh"
 #include "cuda_point_cloud.cuh"
-#include "util.cuh"
+#include <curand_kernel.h>
 
 #include <memory>
 
@@ -16,51 +15,70 @@ enum WEIGHT_TYPE {
 };
 
 struct TSDFVolumeConfig {
-    r32 voxel_size;
-    i32 resolution_size;
-    r32 max_dist_p;
-    r32 max_dist_n;
+    dim3 voxel_grid_size;
+    float3 physical_size; // in physical units
+    float3 global_offset; // grid_offset
     r32 max_weight;
-    r32 min_sensor_dist;
-    r32 max_sensor_dist;
     r32 focal_x;
     r32 focal_y;
     r32 cx;
     r32 cy;
-    WEIGHT_TYPE weight_type = WEIGHT_TYPE::WEIGHT_BY_DEPTH;
-    r32 max_cell_size;
-    i32 num_rand_split = 1;
-    i32 n_level_split = 0;
-    float3 center_octree = make_float3(0, 0, 0);
-    ui32 pool_size;
-    bool use_trilinear_interpolation = true;
+    ui32 camera_width;
+    ui32 camera_height;
+    r32 max_cell_size = 0.0;
 };
 
 class TSDFVolume {
 public:
+    struct TransformationVoxel {
+        using Ptr = TransformationVoxel*;
+
+        float3 translation;
+        float3 rotation;
+    } __attribute__((packed));
+public:
     using Ptr = std::shared_ptr<TSDFVolume>;
 
-    TSDFVolume(const TSDFVolumeConfig& tsdf_cfg, const i32 reserve_pool_size = 0);
+    TSDFVolume(const TSDFVolumeConfig& tsdf_cfg);
     ~TSDFVolume();
 
     bool integrate(const cudaPointCloud::Ptr cuda_pc,
-                   const std::array<r64, 7>& global_pose);
+                   cv::cuda::PtrStepSzf depth,
+                   const std::array<r64, 7>& camera_pose);
 
-    bool get_neighbors(const float3& query_pt, std::vector<OctreeNode::Ptr>& nodes, std::vector<float3>& centers) const;
-    std::vector<int3> get_occupied_voxel_indices() const;
-    bool get_SDF_value(const float3& pt, r32& dist) const;
-    bool fxn(const float3& pt, r32& value) const;
-    bool gradient(const float3& pt, float3& grad) const;
-public:
-    Octree::Ptr octree;
+    bool integrate(const cv::cuda::PtrStepSzb color,
+                   const cv::cuda::PtrStepSzf depth,
+                   const std::array<r64, 7>& camera_pose);
+
+    bool apply_isosurface_transformation(const ui32 num_pts, float3* points);
+
+    r32* voxel_distances_data() {
+        return voxel_distances;
+    }
+
+    r32* voxel_weights_data() {
+        return voxel_weights;
+    }
+
+    uchar3* colors_data() {
+        return colors;
+    }
+
+    TransformationVoxel::Ptr transformation_voxels_data() {
+        return t_voxels;
+    }
 private:
-    void distance_to_voxel(const cudaPointCloud::Ptr cuda_pc);
-
-    bool interpolate_trilinearly(const float3& pt, r32& dist) const;
-    bool get_voxel_index(const float3 pt, int3& ids) const;
-    float3 get_voxel_center(const int3& coord) const;
+    void free_data();
+    void setup_data();
 private:
     TSDFVolumeConfig cfg;
+    float3 voxel_size;
+    r32 max_truncated_dist;
+
+    r32* voxel_distances = nullptr;
+    r32* voxel_weights = nullptr;
+    uchar3* colors = nullptr;
+    TransformationVoxel::Ptr t_voxels = nullptr;
     curandState* custate = nullptr;
 };
 

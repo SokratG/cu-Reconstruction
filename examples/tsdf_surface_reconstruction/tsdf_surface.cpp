@@ -14,7 +14,7 @@ int main(int argc, char* argv[]) {
     cuphoto::Config cfg;
     if (cfg.set_parameter_file(FLAGS_config_path) == false)
         return EXIT_FAILURE;
-    
+
     cuphoto::PointCloudDataset pc_dataset(cfg);
 
     const auto cu_pc = pc_dataset.get_next();

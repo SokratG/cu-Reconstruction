@@ -3,6 +3,7 @@
 
 #include "cp_exception.hpp"
 #include "cuda/tsdf_volume.cuh"
+#include "cuda/marching_cubes.cuh"
 
 #include <glog/logging.h>
 
@@ -13,30 +14,43 @@ TSDFSurface::TSDFSurface(const Config& cfg) {
     normals_radius_search = cfg.get<r64>("pcl.normals.radius_search");
     k_nn = cfg.get<i32>("pcl.normals.k_nn", 0);
 
-    voxel_size = cfg.get<r32>("tsdf.volume.voxel_size");
-    resolution_size = cfg.get<i32>("tsdf.volume.resolution_size");
-    max_dist_p = cfg.get<r32>("tsdf.volume.max_dist_p");
-    max_dist_n = cfg.get<r32>("tsdf.volume.max_dist_n");
+    voxel_grid_size.x() = cfg.get<r32>("tsdf.volume.voxel_grid_size.x");
+    voxel_grid_size.y() = cfg.get<r32>("tsdf.volume.voxel_grid_size.y");
+    voxel_grid_size.z() = cfg.get<r32>("tsdf.volume.voxel_grid_size.z");
+
+    physical_size.x() = cfg.get<r32>("tsdf.volume.physical_size.x");
+    physical_size.y() = cfg.get<r32>("tsdf.volume.physical_size.y");
+    physical_size.z() = cfg.get<r32>("tsdf.volume.physical_size.z");
+
     max_weight = cfg.get<r32>("tsdf.volume.max_weight");
-    min_sensor_dist = cfg.get<r32>("tsdf.volume.min_sensor_dist");
-    max_sensor_dist = cfg.get<r32>("tsdf.volume.max_sensor_dist");
-    
+
+    global_offset.x() = cfg.get<r32>("tsdf.volume.global_offset.x", 0.);
+    global_offset.y() = cfg.get<r32>("tsdf.volume.global_offset.y", 0.);
+    global_offset.z() = cfg.get<r32>("tsdf.volume.global_offset.z", 0.);
+
     focal_x = cfg.get<r32>("camera.fx", 1.0);
     focal_y = cfg.get<r32>("camera.fy", 1.0);
     principal_x = cfg.get<r32>("camera.cx", 0);
     principal_y = cfg.get<r32>("camera.cy", 0);
-    weight_type = cfg.get<i32>("tsdf.volume.weight_type", 0);
-    max_cell_size = cfg.get<r32>("tsdf.volume.max_cell_size");
-    num_rand_split = cfg.get<i32>("tsdf.volume.num_rand_split", 1);
-    pool_size = cfg.get<i32>("tsdf.volume.reserve_pool_size", 0);
-    n_level_split = cfg.get<i32>("tsdf.volume.octree.center.n_level_split", 0);
+    camera_width = cfg.get<r32>("camera.width");
+    camera_height = cfg.get<r32>("camera.height");
 
-    const r32 center_x = cfg.get<r32>("tsdf.volume.octree.center.x", 0.);
-    const r32 center_y = cfg.get<r32>("tsdf.volume.octree.center.y", 0.);
-    const r32 center_z = cfg.get<r32>("tsdf.volume.octree.center.z", 0.);
-    center_octree = Vec3(center_x, center_y, center_z);
-    use_trilinear_interpolation = static_cast<bool>(cfg.get<i32>("tsdf.volume.use_trilinear_interpolation", 1));
+    const r32 roll_degree = cfg.get<r32>("tsdf.volume.camera.pose.euler.roll", 0.);
+    const r32 yaw_degree = cfg.get<r32>("tsdf.volume.camera.pose.euler.yaw", 0.);
+    const r32 pitch_degree = cfg.get<r32>("tsdf.volume.camera.pose.euler.pitch", 0.);
 
+    constexpr r32 half_c = M_PI / 180.;
+    Eigen::AngleAxisd roll_angle(roll_degree * half_c, Eigen::Vector3d::UnitZ());
+    Eigen::AngleAxisd yaw_angle(yaw_degree * half_c, Eigen::Vector3d::UnitY());
+    Eigen::AngleAxisd pitch_angle(pitch_degree * half_c, Eigen::Vector3d::UnitX());
+    Quat qrot = roll_angle * yaw_angle * pitch_angle;
+
+    Vec3 t(cfg.get<r32>("tsdf.volume.camera.pose.translation.x", 0.),
+           cfg.get<r32>("tsdf.volume.camera.pose.translation.y", 0.), 
+           cfg.get<r32>("tsdf.volume.camera.pose.translation.z", 0.));
+
+    SE3 global_camera_pose(qrot, t);
+    set_global_transformation(global_camera_pose);
 }
 
 
@@ -53,38 +67,49 @@ void TSDFSurface::reconstruct_surface(const cudaPointCloud::Ptr cuda_pc) {
     // TODO
     TSDFVolumeConfig tsdf_cfg;
 
-    tsdf_cfg.voxel_size = voxel_size;
-    tsdf_cfg.resolution_size = resolution_size;
-    tsdf_cfg.max_dist_p = max_dist_p;
-    tsdf_cfg.max_dist_n = max_dist_n;
+    tsdf_cfg.voxel_grid_size.x = voxel_grid_size.x();
+    tsdf_cfg.voxel_grid_size.y = voxel_grid_size.y();
+    tsdf_cfg.voxel_grid_size.z = voxel_grid_size.z();
+
+    tsdf_cfg.physical_size.x = physical_size.x();
+    tsdf_cfg.physical_size.y = physical_size.y();
+    tsdf_cfg.physical_size.z = physical_size.z();
+
+    tsdf_cfg.global_offset.x = global_offset.x();
+    tsdf_cfg.global_offset.y = global_offset.y();
+    tsdf_cfg.global_offset.z = global_offset.z();
+
     tsdf_cfg.max_weight = max_weight;
 
-    tsdf_cfg.min_sensor_dist = min_sensor_dist;
-    tsdf_cfg.max_sensor_dist = max_sensor_dist;
     tsdf_cfg.focal_x = focal_x;
     tsdf_cfg.focal_y = focal_y;
     tsdf_cfg.cx = principal_x;
     tsdf_cfg.cy = principal_y;
 
-    tsdf_cfg.weight_type = static_cast<WEIGHT_TYPE>(weight_type);
-    tsdf_cfg.max_cell_size= max_cell_size;
-    tsdf_cfg.num_rand_split = num_rand_split;
-    tsdf_cfg.n_level_split = n_level_split;
-    tsdf_cfg.pool_size = pool_size;
-    tsdf_cfg.center_octree = make_float3(center_octree.x(), center_octree.y(), center_octree.z());
-    tsdf_cfg.use_trilinear_interpolation = use_trilinear_interpolation;
+    tsdf_cfg.camera_width = camera_width;
+    tsdf_cfg.camera_height = camera_height;
 
-    TSDFVolume tsdf_volume(tsdf_cfg, tsdf_cfg.pool_size);
+    TSDFVolume tsdf_volume(tsdf_cfg);
 
     const auto cuda_normals_pc = compute_normals_pc(cuda_pc, normals_radius_search, k_nn);
 
-    Mat3 R = global_transform.rotationMatrix();
+    Mat3 R = global_transform.rotationMatrix();    
     Vec3 t = global_transform.translation();
-    cuphoto::Quat q(R);
+    Quat q(R);
     std::array<r64, 7> global_pose {q.w(), q.x(), q.y(), q.z(), t.x(), t.y(), t.z()};
 
-    tsdf_volume.integrate(cuda_pc, global_pose);
+    cv::cuda::GpuMat gpu_depth(cv::Size(camera_width, camera_height), CV_32F);
+    cv::cuda::GpuMat gpu_color(cv::Size(camera_width, camera_height), CV_8UC3);
+    gpu_color.step = camera_width * sizeof(uchar3);
+    if (!cuda_pc->project_to_color_depth(gpu_color, gpu_depth, global_pose)) {
+        return;
+    }
+
+    tsdf_volume.integrate(gpu_color, gpu_depth, global_pose);
     
+    std::vector<float3> verts;
+    std::vector<int3> triangles;
+    generate_triangular_surface(tsdf_volume, verts, triangles);
 }
 
 }

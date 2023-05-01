@@ -95,6 +95,10 @@ public:
         return translate(rotate(p));
     }
 
+    __host__ __device__ float3 operator*(const float3& p) const {
+        return translate(rotate(p));
+    }
+
     __host__ __device__ inline ui64 get_size() const { return 12 * sizeof(Type); }
 
     __host__ __device__ inline Type operator()(const i32 row, const i32 col) const {
