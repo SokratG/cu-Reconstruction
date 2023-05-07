@@ -189,40 +189,6 @@ __global__ void cu_tsdf_integrate(r32* voxel_distances, r32* voxel_weights,
     }
 }
 
-
-__global__ void cu_isosurface_transformation(const TSDFVolume::TransformationVoxel::Ptr t_voxels,
-                                             const dim3 grid_size, const float3 voxel_size, 
-                                             const float3 offset, const i32 num_pts,
-                                             const float4 cam_rot_quat, const float3 cam_trans, 
-                                             cudaPointCloud::Vertex::Ptr surface_points) {
-    const i32 idx = blockIdx.x * blockDim.x + threadIdx.x;
-    if (idx >= num_pts)
-        return;
-    float3 vertex = surface_points[idx].pos;
-    
-    vertex = vertex - offset;
-
-    i32 neighbours[VOXEL_NEIGHBOURS];
-    r32 coeffs[VOXEL_NEIGHBOURS];
-
-    interpolate_trilinearly(vertex, grid_size, voxel_size, neighbours, coeffs);
-    float3 t_iso_point = make_float3(0.f, 0.f, 0.f);
-    t_iso_point = t_iso_point + (coeffs[0] * t_voxels[neighbours[0]].translation);
-    t_iso_point = t_iso_point + (coeffs[1] * t_voxels[neighbours[1]].translation);
-    t_iso_point = t_iso_point + (coeffs[2] * t_voxels[neighbours[2]].translation);
-    t_iso_point = t_iso_point + (coeffs[3] * t_voxels[neighbours[3]].translation);
-    t_iso_point = t_iso_point + (coeffs[4] * t_voxels[neighbours[4]].translation);
-    t_iso_point = t_iso_point + (coeffs[5] * t_voxels[neighbours[5]].translation);
-    t_iso_point = t_iso_point + (coeffs[6] * t_voxels[neighbours[6]].translation);
-    t_iso_point = t_iso_point + (coeffs[7] * t_voxels[neighbours[7]].translation);
-
-    SE3<r32> cam_pose(cam_rot_quat, cam_trans);
-
-    t_iso_point = cam_pose * t_iso_point;
-
-    surface_points[idx].pos = t_iso_point;
-}
-
 // =============================================================================
 
 TSDFVolume::TSDFVolume(const TSDFVolumeConfig& tsdf_cfg) {
@@ -322,48 +288,5 @@ bool TSDFVolume::integrate(const cv::cuda::PtrStepSzb color,
 
     return true;
 }
-
-
-
-
-bool TSDFVolume::integrate(const cudaPointCloud::Ptr cuda_pc, cv::cuda::PtrStepSzf depth,
-                           const std::array<r64, 7>& camera_pose) {
-
-    // TODO
-
-    CUDA(cudaDeviceSynchronize());
-
-    return true;
-}
-
-
-
-
-bool TSDFVolume::apply_isosurface_transformation(cudaPointCloud::Vertex::Ptr vertices,
-                                                 const ui32 num_pts, 
-                                                 const std::array<r64, 7>& camera_pose) {
-    if (!vertices || num_pts <= 0) {
-        LogError(LOG_CUDA "TSDFVolume::apply_isosurface_transformation() -- the given vertices is nullptr or num points is less than 0\n");
-        return false;
-    }
-    float4 quat = make_float4(camera_pose[1], camera_pose[2], camera_pose[3], camera_pose[0]);
-    float3 trans = make_float3(camera_pose[4], camera_pose[5], camera_pose[6]);
-    dim3 blockDim(64, 1);
-    dim3 gridDim(iDivUp(num_pts, blockDim.x), 1);
-
-    cu_isosurface_transformation<<<gridDim, blockDim>>>(t_voxels, cfg.voxel_grid_size, voxel_size,
-                                                        cfg.global_offset, num_pts, quat, trans, vertices);
-
-    if (CUDA_FAILED(cudaGetLastError())) {
-        LogError(LOG_CUDA "TSDFVolume::apply_isosurface_transformation() -- failed transform points of the surface\n");
-        return false;
-    }
-    
-    CUDA(cudaDeviceSynchronize());
-
-    return true;
-}
-
-
 
 }

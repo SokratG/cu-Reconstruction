@@ -1,7 +1,5 @@
 ## Cuda Photogrammetry
 
-### TODO: add description...
-
 ### Structure from motion
 1 | 2 | 3 |
 :------:|:-------:|:------:|
@@ -39,13 +37,6 @@
 :------:|:-------:|
 ![](gitresource/figures/im0.png)  |  ![](gitresource/figures/stereo_depth.png) |
 <b></b>
-
-
-### TODO Features:
-* add Surface reconstruction(Cuda TSDF)
-* add Disparity estimation(cuda Patch Matching)
-* add TSDF Fusion
-
 
 
 ### Build project
