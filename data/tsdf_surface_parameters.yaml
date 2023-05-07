@@ -1,15 +1,22 @@
 %YAML:1.0
 
-dataset.path: "./data/dataset/point_cloud/"
+rgbd.dataset.path: "./data/dataset/rgbd/scene01"
+point_cloud.dataset.path: "./data/dataset/point_cloud/"
 dataset.color.mode: 0 # 0 - false, 1 - true
-mesh_store.path: "./mesh_tsdf_bunny.ply" 
+# mesh_store.path: "./mesh_tsdf_bunny.ply" 
+mesh_store.path: "./mesh_tsdf_scene.ply"
 
-camera.fx: 719.5459
-camera.fy: 719.5459
+camera.fx: 527.01
+camera.fy: 527.01
 camera.cx: 320.0
 camera.cy: 240.0
 camera.width: 640
 camera.height: 480
+
+
+# kinect depth
+depth_scale: 0.0001 
+
 
 # filter resolution input point cloud 
 dataset.pcl.voxel_filter.resolution: 0.0015 # 0.002
@@ -20,24 +27,26 @@ pcl.normals.k_nn: 0
 
 
 # tsdf volume config
-tsdf.volume.voxel_grid_size.x: 100
-tsdf.volume.voxel_grid_size.y: 100
-tsdf.volume.voxel_grid_size.z: 100
+tsdf.volume.voxel_grid_size.x: 320
+tsdf.volume.voxel_grid_size.y: 240
+tsdf.volume.voxel_grid_size.z: 32
 tsdf.volume.physical_size.x: 1.0
 tsdf.volume.physical_size.y: 1.0
 tsdf.volume.physical_size.z: 1.0
 tsdf.volume.max_weight: 15.0
 
-
+tsdf.volume.global_offset.x: -0.2
+tsdf.volume.global_offset.y: 0
+tsdf.volume.global_offset.z: 0.6
 # tsdf.volume.octree.center.x: 0
 # tsdf.volume.octree.center.y: 0
 # tsdf.volume.octree.center.z: 0
 # tsdf.volume.octree.center.n_level_split: 0
 
 
-tsdf.volume.camera.pose.translation.x: 0.015
-tsdf.volume.camera.pose.translation.y: -0.1
-tsdf.volume.camera.pose.translation.z: -0.25
+tsdf.volume.camera.pose.translation.x: 0.0 # 0.015
+tsdf.volume.camera.pose.translation.y: 0.0 # -0.1
+tsdf.volume.camera.pose.translation.z: 0.0 # -0.25
 tsdf.volume.camera.pose.euler.roll: 0.0 # degree
-tsdf.volume.camera.pose.euler.yaw: 30.0 # degree
+tsdf.volume.camera.pose.euler.yaw: 0.0 # 30.0 # degree
 tsdf.volume.camera.pose.euler.pitch: 0.0 # degree

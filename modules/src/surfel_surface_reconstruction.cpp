@@ -81,7 +81,7 @@ void SurfelSurface::build_mesh(SurfaceData& sd) {
         indices.at(idx) = tri;
     }
 
-    this->surface_mesh.vertices(points);
+    this->surface_mesh.set_vertices_data(points);
     this->surface_mesh.polygons(indices);
 }
 

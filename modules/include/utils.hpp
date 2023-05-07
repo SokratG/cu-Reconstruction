@@ -58,7 +58,8 @@ Vec3f cv_rgb_2_eigen_rgb(const cv::Vec3b& cv_color);
 
 void write_ply_file(const std::string_view filename, const std::vector<SE3>& poses, 
                     const std::vector<Vec3>& pts, const std::vector<Vec3f>& color);
-
+void write_mesh_to_ply(const std::string& file_name, const std::vector<Vec3f>& vertices, 
+                       const std::vector<Vec3i>& triangles);
 
 bool save_image(const std::string& filepath, const cv::InputArray image);
 

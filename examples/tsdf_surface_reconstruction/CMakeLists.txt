@@ -15,7 +15,7 @@ include_directories("${PROJECT_SOURCE_DIR}/examples/common")
 include_directories(${GFLAGS_INCLUDE_DIRS})
 include_directories(${GLOG_INCLUDE_DIRS})
 
-set(SRC_TSDF "tsdf_surface.cpp")
+set(SRC_TSDF "tsdf_surface.cpp" "${PROJECT_SOURCE_DIR}/examples/common/rgbd_dataset.cpp")
 
 add_executable(tsdf_surface ${SRC_TSDF})
 

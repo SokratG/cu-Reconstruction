@@ -34,7 +34,7 @@ public:
         using Ptr = TransformationVoxel*;
 
         float3 translation;
-        float3 rotation;
+        float4 quat_rotation;
     } __attribute__((packed));
 public:
     using Ptr = std::shared_ptr<TSDFVolume>;
@@ -50,9 +50,15 @@ public:
                    const cv::cuda::PtrStepSzf depth,
                    const std::array<r64, 7>& camera_pose);
 
-    bool apply_isosurface_transformation(const ui32 num_pts, float3* points);
+    bool apply_isosurface_transformation(cudaPointCloud::Vertex::Ptr vertices,
+                                         const ui32 num_pts, 
+                                         const std::array<r64, 7>& camera_pose);
 
     r32* voxel_distances_data() {
+        return voxel_distances;
+    }
+
+    r32* voxel_distances_data() const {
         return voxel_distances;
     }
 
@@ -60,11 +66,28 @@ public:
         return voxel_weights;
     }
 
-    uchar3* colors_data() {
-        return colors;
+    dim3 voxel_grid_size() const {
+        return cfg.voxel_grid_size;
     }
 
+    float3 global_offset() const {
+        return cfg.global_offset;
+    }
+
+    float3 scale_voxel_size() const {
+        return voxel_size;
+    }
+
+    float3 voxel_phys_size() const {
+        return cfg.physical_size;
+    }
+    
+
     TransformationVoxel::Ptr transformation_voxels_data() {
+        return t_voxels;
+    }
+
+    TransformationVoxel::Ptr transformation_voxels_data() const {
         return t_voxels;
     }
 private:
@@ -77,7 +100,6 @@ private:
 
     r32* voxel_distances = nullptr;
     r32* voxel_weights = nullptr;
-    uchar3* colors = nullptr;
     TransformationVoxel::Ptr t_voxels = nullptr;
     curandState* custate = nullptr;
 };

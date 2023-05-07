@@ -4,7 +4,7 @@
 namespace cuphoto {
 
 
-__device__ int3 camera_to_pixel(const float3 cam_pt, const float4 camera_k) {
+__host__ __device__ int3 camera_to_pixel(const float3 cam_pt, const float4 camera_k) {
     int3 px_coord = make_int3(0, 0, 0);
     if (cam_pt.z == 0.)
         return px_coord;
@@ -18,7 +18,7 @@ __device__ int3 camera_to_pixel(const float3 cam_pt, const float4 camera_k) {
     return px_coord;
 }
 
-__device__ float3 pixel_to_camera(const int3 px_pt, const float4 camera_k, const r32 depth) {
+__host__ __device__ float3 pixel_to_camera(const int3 px_pt, const float4 camera_k, const r32 depth) {
     float3 camera_coord = make_float3(0.0, 0.0, 0.0);
     r32 fx = camera_k.x;
     r32 fy = camera_k.y;
@@ -31,17 +31,17 @@ __device__ float3 pixel_to_camera(const int3 px_pt, const float4 camera_k, const
 }
 
 
-__device__ float3 world_to_camera(const float3 world_pt, const SE3<r32>& camera_pose) {
+__host__ __device__ float3 world_to_camera(const float3 world_pt, const SE3<r32>& camera_pose) {
     float3 cam_pt = camera_pose * world_pt;
     return cam_pt;
 }
 
-__device__ float3 camera_to_world(const float3 cam_pt, const SE3<r32>& camera_pose_inv) {
+__host__ __device__ float3 camera_to_world(const float3 cam_pt, const SE3<r32>& camera_pose_inv) {
     float3 world_pt = camera_pose_inv * cam_pt;
     return world_pt;
 }
 
-__device__ int3 world_to_pixel(const float3 world_pt, const SE3<r32>& camera_pose, const float4 camera_k) {
+__host__ __device__ int3 world_to_pixel(const float3 world_pt, const SE3<r32>& camera_pose, const float4 camera_k) {
     int3 px_coord = make_int3(0, 0, 0);
     if (world_pt.z == 0.)
         return px_coord;
@@ -50,7 +50,7 @@ __device__ int3 world_to_pixel(const float3 world_pt, const SE3<r32>& camera_pos
     return px_coord;
 }
 
-__device__ float3 pixel_to_world(const int3 px_pt, const SE3<r32>& camera_pose_inv, 
+__host__ __device__ float3 pixel_to_world(const int3 px_pt, const SE3<r32>& camera_pose_inv, 
                                  const float4 camera_k, const r32 depth) {
     float3 cam_pt = pixel_to_camera(px_pt, camera_k, depth);
     float3 world_pt = camera_to_world(cam_pt, camera_pose_inv);

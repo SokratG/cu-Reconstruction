@@ -1,5 +1,6 @@
 #include "tsdf_surface_reconstruction.hpp"
 #include "point_cloud_utility.hpp"
+#include "mesh.hpp"
 
 #include "cp_exception.hpp"
 #include "cuda/tsdf_volume.cuh"
@@ -9,8 +10,35 @@
 
 namespace cuphoto {
 
+TSDFVolumeConfig TSDFSurface::build_cfg() const {
+    TSDFVolumeConfig tsdf_cfg;
+
+    tsdf_cfg.voxel_grid_size.x = voxel_grid_size.x();
+    tsdf_cfg.voxel_grid_size.y = voxel_grid_size.y();
+    tsdf_cfg.voxel_grid_size.z = voxel_grid_size.z();
+
+    tsdf_cfg.physical_size.x = physical_size.x();
+    tsdf_cfg.physical_size.y = physical_size.y();
+    tsdf_cfg.physical_size.z = physical_size.z();
+
+    tsdf_cfg.global_offset.x = global_offset.x();
+    tsdf_cfg.global_offset.y = global_offset.y();
+    tsdf_cfg.global_offset.z = global_offset.z();
+
+    tsdf_cfg.max_weight = max_weight;
+
+    tsdf_cfg.focal_x = focal_x;
+    tsdf_cfg.focal_y = focal_y;
+    tsdf_cfg.cx = principal_x;
+    tsdf_cfg.cy = principal_y;
+
+    tsdf_cfg.camera_width = camera_width;
+    tsdf_cfg.camera_height = camera_height;
+    return tsdf_cfg;
+}
+
+
 TSDFSurface::TSDFSurface(const Config& cfg) {
-    // TODO
     normals_radius_search = cfg.get<r64>("pcl.normals.radius_search");
     k_nn = cfg.get<i32>("pcl.normals.k_nn", 0);
 
@@ -65,29 +93,7 @@ SE3 TSDFSurface::get_global_transformation() const {
 
 void TSDFSurface::reconstruct_surface(const cudaPointCloud::Ptr cuda_pc) {
     // TODO
-    TSDFVolumeConfig tsdf_cfg;
-
-    tsdf_cfg.voxel_grid_size.x = voxel_grid_size.x();
-    tsdf_cfg.voxel_grid_size.y = voxel_grid_size.y();
-    tsdf_cfg.voxel_grid_size.z = voxel_grid_size.z();
-
-    tsdf_cfg.physical_size.x = physical_size.x();
-    tsdf_cfg.physical_size.y = physical_size.y();
-    tsdf_cfg.physical_size.z = physical_size.z();
-
-    tsdf_cfg.global_offset.x = global_offset.x();
-    tsdf_cfg.global_offset.y = global_offset.y();
-    tsdf_cfg.global_offset.z = global_offset.z();
-
-    tsdf_cfg.max_weight = max_weight;
-
-    tsdf_cfg.focal_x = focal_x;
-    tsdf_cfg.focal_y = focal_y;
-    tsdf_cfg.cx = principal_x;
-    tsdf_cfg.cy = principal_y;
-
-    tsdf_cfg.camera_width = camera_width;
-    tsdf_cfg.camera_height = camera_height;
+    TSDFVolumeConfig tsdf_cfg = build_cfg();
 
     TSDFVolume tsdf_volume(tsdf_cfg);
 
@@ -105,11 +111,45 @@ void TSDFSurface::reconstruct_surface(const cudaPointCloud::Ptr cuda_pc) {
         return;
     }
 
-    tsdf_volume.integrate(gpu_color, gpu_depth, global_pose);
+    // tsdf_volume.integrate(gpu_color, gpu_depth, global_pose);
+    
+    // std::vector<float3> verts;
+    // std::vector<int3> triangles;
+    // generate_triangular_surface(tsdf_volume, verts, triangles);
+
+}
+
+void TSDFSurface::reconstruct_surface(const cv::cuda::GpuMat& color, const cv::cuda::GpuMat& depth) {
+    TSDFVolumeConfig tsdf_cfg = build_cfg();
+
+    TSDFVolume tsdf_volume(tsdf_cfg);
+
+    Mat3 R = global_transform.rotationMatrix();    
+    Vec3 t = global_transform.translation();
+    Quat q(R);
+    std::array<r64, 7> global_pose {q.w(), q.x(), q.y(), q.z(), t.x(), t.y(), t.z()};
+
+    // gpu_color.step = camera_width * sizeof(uchar3);
+    
+    tsdf_volume.integrate(color, depth, global_pose);
     
     std::vector<float3> verts;
     std::vector<int3> triangles;
     generate_triangular_surface(tsdf_volume, verts, triangles);
+
+    std::vector<Mesh::Point> mesh_verts(verts.size());
+    std::vector<Mesh::Triangle> mesh_triangles(triangles.size());
+
+    for (i32 idx = 0; idx < verts.size(); ++idx) {
+        mesh_verts[idx] = Mesh::Point(verts[idx].x, verts[idx].y, verts[idx].z);
+    }
+    
+    for (i32 idx = 0; idx < triangles.size(); ++idx) {
+        mesh_triangles[idx] = Mesh::Triangle(triangles[idx].x, triangles[idx].y, triangles[idx].z);
+    }
+
+    this->surface_mesh.vertices(mesh_verts);
+    this->surface_mesh.polygons(mesh_triangles);
 }
 
 }

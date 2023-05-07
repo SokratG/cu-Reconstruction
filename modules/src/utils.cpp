@@ -93,6 +93,31 @@ void write_ply_file(const std::string_view filename, const std::vector<SE3>& pos
     }
 }
 
+void write_mesh_to_ply(const std::string& file_name, 
+                       const std::vector<Vec3f>& vertices, 
+                       const std::vector<Vec3i>& triangles) {
+	std::ofstream of(file_name);
+	if (!of.is_open())
+        return;
+    of << "ply"
+       << '\n' << "format ascii 1.0"
+       << '\n' << "element vertex " << vertices.size()
+       << '\n' << "property float x"
+       << '\n' << "property float y"
+       << '\n' << "property float z"
+       << '\n' << "element face " << triangles.size()
+       << '\n' << "property list uchar int vertex_indices"
+       << '\n' << "end_header\n";
+
+    for (i32 v = 0; v < vertices.size(); v++ ) {
+        of << vertices[v].x() << " " << vertices[v].y() << " " << vertices[v].z() << "\n";
+    }
+    for (i32 t = 0; t < triangles.size(); t++ ) {
+        of << "3 " << triangles[t].x() << " " << triangles[t].y() << " " << triangles[t].z() << "\n";
+    }
+}
+
+
 
 std::set<std::string> files_directory(const std::string& data_path, const std::set<std::string>& extensions) {
     std::set<std::string> files;
