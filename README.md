@@ -38,6 +38,12 @@
 ![](gitresource/figures/im0.png)  |  ![](gitresource/figures/stereo_depth.png) |
 <b></b>
 
+### TSDF Fusion
+1 | 2 |
+:------:|:-------:|
+![](gitresource/figures/frame-000000.color.png)  |  ![](gitresource/figures/tsdf_fusion.png) |
+<b></b>
+
 
 ### Build project
 ```
