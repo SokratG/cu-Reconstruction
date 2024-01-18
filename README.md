@@ -26,19 +26,13 @@
 ![](gitresource/figures/B20.jpg)  |  ![](gitresource/figures/midas_depth.png) |
 <b></b>
 
-### Surface reconstruction using monodepth and surfels triangulation
-1 | 2 |
-:------:|:-------:|
-![](gitresource/figures/B24.jpg)  |  ![](gitresource/figures/surfel_surface.png) |
-<b></b>
-
 ### Cuda SGM stereo estimation
 1 | 2 |
 :------:|:-------:|
 ![](gitresource/figures/im0.png)  |  ![](gitresource/figures/stereo_depth.png) |
 <b></b>
 
-### TSDF Fusion
+### Surface reconstruction using TSDF Fusion
 1 | 2 |
 :------:|:-------:|
 ![](gitresource/figures/frame-000000.color.png)  |  ![](gitresource/figures/tsdf_fusion.png) |
